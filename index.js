@@ -1,21 +1,51 @@
 require('dotenv').config({ debug: true });
 
-const Discord = require('discord.js')
-const client = new Discord.Client()
+const { Client, Collection, GatewayIntentBits, Events } = require('discord.js');
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions] });
+const fs = require('node:fs');
+const path = require('node:path');
 
-const GiphyFetch = require('@giphy/js-fetch-api').GiphyFetch
-const gf = new GiphyFetch('sXpGFDGZs0Dv1mmNFvYaGUvYwKX0PWIh') // GIPHY public demo api key: don't use this in production
-global.fetch = require('node-fetch') // fetch polyfill needed
+client.commands = new Collection();
 
-client.ws.on('INTERACTION_CREATE', async interaction => {
-  const { data: gifs } = await gf.search(interaction.data.options[0].value + ' penguin', { sort: 'relevant', limit: 1, type: interaction.data.options[1] ? 'stickers' : 'gifs' })
-  client.api.interactions(interaction.id, interaction.token).callback.post({data: {
-    type: 4,
-    data: {
-      content: gifs[0].embed_url
-      }
-    }
-  })
-})
+const foldersPath = path.join(__dirname, 'commands');
+const commandFolders = fs.readdirSync(foldersPath);
 
-client.login(process.env.TOKEN)
+for (const folder of commandFolders) {
+	// Grab all the command files from the commands directory you created earlier
+	const commandsPath = path.join(foldersPath, folder);
+	const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+	// Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
+	for (const file of commandFiles) {
+		const filePath = path.join(commandsPath, file);
+		const command = require(filePath);
+		if ('data' in command && 'execute' in command) {
+			// commands.push(command.data.toJSON());
+			client.commands.set(command.data.name, command);
+		} else {
+			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+		}
+	}
+}
+
+client.on(Events.InteractionCreate, async interaction => {
+	if (!interaction.isChatInputCommand()) return;
+	const command = interaction.client.commands.get(interaction.commandName);
+
+	if (!command) {
+		console.error(`No command matching ${interaction.commandName} was found.`);
+		return;
+	}
+
+	try {
+		await command.execute(interaction);
+	} catch (error) {
+		console.error(error);
+		if (interaction.replied || interaction.deferred) {
+			await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+		} else {
+			await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+		}
+	}
+});
+
+client.login(process.env.TOKEN);
