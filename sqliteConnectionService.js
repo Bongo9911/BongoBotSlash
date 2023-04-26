@@ -23,7 +23,12 @@ module.exports = class SqliteConnectionService {
         });
     }
 
-    query(query) {
+    /**
+     * Queries the SQLite Database and returns a promise with the results
+     * @param {string} query - The database query
+     * @returns {Promise<string[]>}
+     */
+    async query(query) {
         var that = this;
         return new Promise(function (resolve, reject) {
             that.db.all(query, [], (err, rows) => {
