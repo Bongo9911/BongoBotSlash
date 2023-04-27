@@ -4,6 +4,7 @@ const { Client, Collection, GatewayIntentBits, Events } = require('discord.js');
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions] });
 const fs = require('node:fs');
 const path = require('node:path');
+const { sequelize, Games } = require('./databaseModels');
 
 client.commands = new Collection();
 
@@ -28,6 +29,14 @@ for (const folder of commandFolders) {
 }
 
 client.on(Events.InteractionCreate, async interaction => {
+    // await Games.create({
+    //     guild_id: "389594278470615062",
+    //     channel_id: "389594279758135317",
+    //     theme_name: "Test Theme",
+    //     start_user: "200313450319052801",
+    //     status: "ACTIVE"
+    // })
+
 	if (!interaction.isChatInputCommand()) return;
 	const command = interaction.client.commands.get(interaction.commandName);
 
@@ -46,6 +55,11 @@ client.on(Events.InteractionCreate, async interaction => {
 			await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 		}
 	}
+});
+
+client.once(Events.ClientReady, async c => {
+    await sequelize.sync({ alter: true });
+	console.log(`Ready! Logged in as ${c.user.tag}`);
 });
 
 client.login(process.env.TOKEN);
