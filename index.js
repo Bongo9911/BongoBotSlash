@@ -1,10 +1,11 @@
 require('dotenv').config({ debug: true });
 
 const { Client, Collection, GatewayIntentBits, Events } = require('discord.js');
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.MessageContent] });
 const fs = require('node:fs');
 const path = require('node:path');
 const { sequelize, Games } = require('./databaseModels');
+const { makeMove } = require('./giveandtake/giveandtakefunctions');
 
 client.commands = new Collection();
 
@@ -27,6 +28,20 @@ for (const folder of commandFolders) {
 		}
 	}
 }
+
+client.on(Events.MessageCreate, async message => {
+    console.log(message);
+    let content = message.content;
+    if((content.startsWith("+") || content.startsWith("-")) && content.indexOf("+") != -1 && content.indexOf("-") != -1) {
+        const giveName = content.split("+")[1].split("-")[0].substring(1).trim().toLowerCase();
+        const takeName = content.split("-")[1].split("+")[0].substring(1).trim().toLowerCase();
+        let reply = makeMove(message.guildId, message.channelId, message.author.id, giveName, takeName);
+        if ("message" in reply) {
+            message.reply({ content: reply.message });
+        }
+        //TODO: embed
+    }
+})
 
 client.on(Events.InteractionCreate, async interaction => {
     // await Games.create({
@@ -58,7 +73,7 @@ client.on(Events.InteractionCreate, async interaction => {
 });
 
 client.once(Events.ClientReady, async c => {
-    await sequelize.sync({ alter: true });
+    await sequelize.sync();
 	console.log(`Ready! Logged in as ${c.user.tag}`);
 });
 

@@ -18,13 +18,10 @@ const Games = sequelize.define('games', {
 	guild_id: Sequelize.STRING,
 	channel_id: Sequelize.STRING,
 	theme_name: Sequelize.TEXT,
-	start_time: {
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.NOW
-    },
 	start_user: Sequelize.STRING,
-	status: Sequelize.STRING,
+	status: Sequelize.STRING, //SWAPPING or VOTING
     turns: Sequelize.INTEGER, //The number of turns in the game
+    active: Sequelize.BOOLEAN
 });
 
 const GameItems = sequelize.define('game_items', {
@@ -35,7 +32,7 @@ const GameItems = sequelize.define('game_items', {
             key: 'id'
         }
 	},
-	item_id: Sequelize.STRING,
+	label: Sequelize.STRING, //AKA id
 	name: Sequelize.STRING,
 	color: Sequelize.STRING,
 	emoji: Sequelize.STRING,
@@ -50,10 +47,10 @@ const GameHistory = sequelize.define('game_history', {
             key: 'id'
         }
 	},
-	item_id: Sequelize.STRING,
+	item_id: Sequelize.INTEGER,
 	turn_number: Sequelize.INTEGER,
 	points: Sequelize.INTEGER,
-    user: Sequelize.STRING
+    user_id: Sequelize.STRING
 });
 
 const ItemInteractions = sequelize.define('item_interactions', {
@@ -64,15 +61,15 @@ const ItemInteractions = sequelize.define('item_interactions', {
             key: 'id'
         }
 	},
-    server_id: Sequelize.STRING,
+    guild_id: Sequelize.STRING,
     user_id: Sequelize.STRING,
     type: Sequelize.STRING, //Kill, Save or Assist
     theme_name: Sequelize.TEXT,
-    item_id: Sequelize.STRING 
+    item_id: Sequelize.INTEGER 
 });
 
 const UserBadges = sequelize.define('user_badges', {
-    server_id: Sequelize.STRING,
+    guild_id: Sequelize.STRING,
     user_id: Sequelize.STRING,
     badge_id: Sequelize.INTEGER
 });
@@ -84,7 +81,7 @@ const Themes = sequelize.define('themes', {
         autoIncrement: true,
         primaryKey: true
 	},
-    server_id: Sequelize.STRING,
+    guild_id: Sequelize.STRING,
     name: Sequelize.TEXT,
     created_user: Sequelize.STRING,
     enabled: Sequelize.BOOLEAN
@@ -97,21 +94,21 @@ const ThemeItems = sequelize.define('theme_items', {
             model: Themes,
             key: 'id'
         }
-	},
-    item_id: Sequelize.STRING,
+	}, 
+    label: Sequelize.STRING, //AKA id
     name: Sequelize.STRING,
     color: Sequelize.STRING,
     emoji: Sequelize.STRING
 });
 
 const Users = sequelize.define('users', {
-	server_id: Sequelize.STRING,
+	guild_id: Sequelize.STRING,
     user_id: Sequelize.STRING,
     badge_id: Sequelize.INTEGER,
 });
 
 const ServerAdmins = sequelize.define('server_admins', {
-	server_id: Sequelize.STRING,
+	guild_id: Sequelize.STRING,
     user_id: Sequelize.STRING,
     added_user: Sequelize.STRING,
 });
