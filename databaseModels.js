@@ -118,6 +118,12 @@ const GlobalAdmins = sequelize.define('global_admins', {
     added_user: Sequelize.STRING,
 });
 
+const Badges = sequelize.define('badges', {
+    name: Sequelize.STRING,
+    description: Sequelize.STRING,
+    emoji: Sequelize.STRING
+});
+
 exports.sequelize = sequelize;
 exports.Games = Games;
 exports.GameItems = GameItems;
@@ -129,3 +135,4 @@ exports.ThemeItems = ThemeItems;
 exports.Users = Users;
 exports.ServerAdmins = ServerAdmins;
 exports.GlobalAdmins = GlobalAdmins;
+exports.Badges = Badges;

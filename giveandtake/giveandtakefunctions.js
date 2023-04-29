@@ -3,7 +3,7 @@ const { Op } = require("sequelize");
 const { EmbedBuilder } = require('@discordjs/builders');
 
 async function makeMove(guildId, channelId, userId, giveName, takeName) {
-    //TODO: validate that the user isn't on cooldown
+    //TODO: validate that the user isn't on cooldown using createdAt in game_histories
 
     const game = await Games.findOne({
         where: {
@@ -18,21 +18,29 @@ async function makeMove(guildId, channelId, userId, giveName, takeName) {
 
     if (giveItem && takeItem) {
         if (giveItem.points > 0 && takeItem.points > 0) {
+            //Increase the number of turns taken in the active game
+            await game.increment('turns');
+            await game.reload();
+            
             await addPoints(giveItem, 1);
             await addPoints(takeItem, -1);
+
+            //TODO: award badges
+            if (giveItem.points === 2) {
+                await addSave(game, giveItem, userId);
+            }
 
             if (takeItem.points === 0) {
                 await addKill(game, takeItem, userId);
             }
 
-            if (giveItem.points === 2) {
-                await addSave(game, giveItem, userId);
-            }
-
             const pointsEmbed = await buildPointsEmbed(game, takeItem);
 
-            //TODO: insert into history table
-            //TODO: award badges
+            //insert into history table
+            await addHistoryRecord(game, giveItem, userId);
+            await addHistoryRecord(game, takeItem, userId);
+
+            return { embed: pointsEmbed };
         }
         else {
             let reply = "";
@@ -70,7 +78,7 @@ async function getItem(gameId, item) {
                 }
             ]
         }
-    })
+    });
 }
 
 async function addPoints(item, points) {
@@ -79,9 +87,9 @@ async function addPoints(item, points) {
 }
 
 async function addKill(game, item, userId) {
-    await addInteraction(game, item, userId, "Kill")
+    await addInteraction(game, item, userId, "Kill");
 
-    //TODO: add assist
+    //TODO: make sure last user isn't equal to user getting kill (you can't assist yourself)
     const lastTake = await GameHistory.findOne({
         attributes: [
             sequelize.fn('MAX', sequelize.col('id'))
@@ -92,11 +100,39 @@ async function addKill(game, item, userId) {
         }
     });
 
-    addInteraction(game, item, lastTake.user_id, "Assist")
+    addInteraction(game, item, lastTake.user_id, "Assist");
 }
 
 async function addSave(game, item, userId) {
-    await addInteraction(game, item, userId, "Save")
+    await addInteraction(game, item, userId, "Save");
+    await addSaveBadges(game.guild_id, userId);
+}
+
+async function addSaveBadges(guildId, userId) {
+    const saves = ItemInteractions.findAll({
+        where: {
+            guild_id: guildId,
+            user_id: userId,
+            type: "Save"
+        }
+    });
+
+    if(saves.length === "1") {
+        //1 save badge 
+    }
+    else if(saves.length === "5") {
+        //5 saves
+    }
+    else if(saves.length === "10") {
+
+    }
+    else if(saves.length === "25") {
+
+    }
+}
+
+async function addBadge(guildId, userId, badgeId) {
+
 }
 
 async function addInteraction(game, item, userId, type) {
@@ -108,6 +144,16 @@ async function addInteraction(game, item, userId, type) {
         theme_name: game.theme_name,
         item_name: item.name
     });
+}
+
+async function addHistoryRecord(game, item, userId) {
+    await GameHistory.create({
+        game_id: game.id,
+        item_id: item.id,
+        turn_number: game.turns,
+        points: item.points,
+        user_id: userId
+    })
 }
 
 async function buildPointsEmbed(game, takeItem) {
