@@ -29,7 +29,8 @@ module.exports = {
             interaction.editReply({ content: reply.message });
         }
         else if("embed" in reply) {
-            interaction.editReply({ embeds: [reply.embed] });
+            let content = "+" + giveName + "\n-" + takeName;
+            interaction.editReply({ content: content, embeds: [reply.embed] });
         }
         //TODO: embed
     },
