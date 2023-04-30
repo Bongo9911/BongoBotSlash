@@ -33,11 +33,14 @@ client.on(Events.MessageCreate, async message => {
     console.log(message);
     let content = message.content;
     if((content.startsWith("+") || content.startsWith("-")) && content.indexOf("+") != -1 && content.indexOf("-") != -1) {
-        const giveName = content.split("+")[1].split("-")[0].substring(1).trim().toLowerCase();
-        const takeName = content.split("-")[1].split("+")[0].substring(1).trim().toLowerCase();
-        let reply = makeMove(message.guildId, message.channelId, message.author.id, giveName, takeName);
+        const giveName = content.split("+")[1].split("-")[0].trim().toLowerCase();
+        const takeName = content.split("-")[1].split("+")[0].trim().toLowerCase();
+        let reply = await makeMove(message.guildId, message.channelId, message.author.id, giveName, takeName);
         if ("message" in reply) {
             message.reply({ content: reply.message });
+        }
+        else if("embed" in reply) {
+            message.reply({ embeds: [reply.embed] });
         }
         //TODO: embed
     }

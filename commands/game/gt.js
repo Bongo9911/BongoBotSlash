@@ -23,10 +23,13 @@ module.exports = {
         const giveName = interaction.options.getString('give');
         const takeName = interaction.options.getString('take');
 
-        let reply = makeMove(interaction.guildId, interaction.channelId, interaction.user.id, giveName, takeName);
+        let reply = await makeMove(interaction.guildId, interaction.channelId, interaction.user.id, giveName, takeName);
 
         if ("message" in reply) {
             interaction.editReply({ content: reply.message });
+        }
+        else if("embed" in reply) {
+            interaction.editReply({ embeds: [reply.embed] });
         }
         //TODO: embed
     },
