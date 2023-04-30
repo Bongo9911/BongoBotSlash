@@ -3,8 +3,6 @@ const { Op } = require("sequelize");
 const { EmbedBuilder } = require('discord.js');
 
 async function makeMove(guildId, channelId, userId, giveName, takeName) {
-    //TODO: validate that the user isn't on cooldown using createdAt in game_histories
-
     const game = await Games.findOne({
         where: {
             guild_id: guildId,
@@ -13,9 +11,10 @@ async function makeMove(guildId, channelId, userId, giveName, takeName) {
         }
     });
 
-    const cooldownTime = await getUserNextMoveTime(game.id, userId);
-    if (cooldownTime > 0) {
-        return { message: "You can send another message <t:" + cooldownTime + ":R>." }
+    const nextMoveTime = await getUserNextMoveTime(game.id, userId);
+
+    if (nextMoveTime > new Date().getTime()) {
+        return { message: "You can make another move <t:" + Math.ceil(nextMoveTime/1000) + ":R>." }
     }
 
     const giveItem = await getItem(game.id, giveName);
@@ -78,12 +77,12 @@ async function getUserNextMoveTime(gameId, userId) {
         order: [['createdAt', 'DESC']],
     });
 
-    const lastMoveTime = Date.parse(lastUserTurn.createdAt);
-    const currentTime = new Date().getTime();
-    const timeDifference = currentTime - lastMoveTime;
-    const nextMoveTime = ((1000 * 60 * 60) - timeDifference) > 0 ? Math.ceil(lastMoveTime / 1000) + 3600 : 0;
-
-    return nextMoveTime;
+    if(lastUserTurn) {
+        return Date.parse(lastUserTurn.createdAt) + 3600000;
+    }
+    else {
+        return new Date().getTime();
+    }
 }
 
 async function getItem(gameId, item) {
