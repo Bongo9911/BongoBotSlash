@@ -11,9 +11,11 @@ async function makeMove(guildId, channelId, userId, giveName, takeName) {
         }
     });
 
+    //TODO: enable lol
+    const cooldownEnabled = false;
     const nextMoveTime = await getUserNextMoveTime(game.id, userId);
 
-    if (nextMoveTime > new Date().getTime()) {
+    if (cooldownEnabled && nextMoveTime > new Date().getTime()) {
         return { message: "You can make another move <t:" + Math.ceil(nextMoveTime/1000) + ":R>." }
     }
 
@@ -109,9 +111,9 @@ async function addPoints(item, points) {
 async function addKill(game, item, userId) {
     await addInteraction(game, item, userId, "Kill");
     await addKillCountBadges(game.guild_id, userId);
-    //TODO: First blood badge (Fist kill of game)
-    //TODO: Finishing Blow badge (Last kill of game)
-    //TODO: Memento Mori badge (Kill within 5 minutes of save)
+    //TODO: First blood badge (Fist kill of game) check if number of items with 0 points === 1
+    //TODO: Finishing Blow badge (Last kill of game) check if number of items with >0 points is === 2
+    //TODO: Memento Mori badge (Kill within 5 minutes of save) //Check timestamp of last save for item
 
     const lastTake = await GameHistory.findOne({
         attributes: [

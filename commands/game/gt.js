@@ -1,6 +1,5 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { Games, ItemInteractions, GameHistory, sequelize } = require('../../databaseModels.js');
-const { getItem, addSave, addKill, addPoints, makeMove } = require('../../giveandtake/giveandtakefunctions.js');
+const { SlashCommandBuilder } = require('discord.js');
+const { makeMove } = require('../../giveandtake/giveandtakefunctions.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -32,6 +31,5 @@ module.exports = {
             let content = "+" + giveName + "\n-" + takeName;
             interaction.editReply({ content: content, embeds: [reply.embed] });
         }
-        //TODO: embed
     },
 };

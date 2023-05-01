@@ -20,7 +20,7 @@ module.exports = {
                     where: {
                         theme_id: themes[i].id
                     }
-                })
+                });
                 themeList += "**" + themes[i].name + "** - " + itemCount + " Items" + (i == themes.length - 1 ? " " : "\n");
             }
 
