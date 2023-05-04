@@ -1,4 +1,4 @@
-const { GameItems, ItemInteractions, GameHistory, Games } = require('../databaseModels.js');
+const { GameItems, ItemInteractions, GameHistory, Games, UserBadges } = require('../databaseModels.js');
 const { Op } = require("sequelize");
 const { EmbedBuilder } = require('discord.js');
 
@@ -148,16 +148,20 @@ async function addKillCountBadges(guildId, userId) {
     });
 
     if (kills.length === "1") {
-        //1 kill badge - Murderer
+        //1 kill badge - Dead To Me ☠️
+        addBadge(guildId, userId, 1);
     }
     else if (kills.length === "5") {
-        //5 kills - Hunter
+        //5 kills - Hunter 🏹
+        addBadge(guildId, userId, 4);
     }
     else if (kills.length === "10") {
-        //10 kills - Hitman
+        //10 kills - Hitman 🔫
+        addBadge(guildId, userId, 7);
     }
     else if (kills.length === "25") {
-        //25 kills - Serial Killer
+        //25 kills - Serial Killer 🔪
+        addBadge(guildId, userId, 10);
     }
 }
 
@@ -171,16 +175,20 @@ async function addAssistCountBadges(guildId, userId) {
     });
 
     if (assists.length === "1") {
-        //1 assist badge - Helping Hand
+        //1 assist badge - Helping Hand 🫶
+        addBadge(guildId, userId, 3);
     }
     else if (assists.length === "5") {
-        //5 assists - True Homie
+        //5 assists - True Homie 🫂
+        addBadge(guildId, userId, 6);
     }
     else if (assists.length === "10") {
-        //10 assists - Sidekick
+        //10 assists - Here to Help ❤️‍🔥 
+        addBadge(guildId, userId, 9);
     }
     else if (assists.length === "25") {
-        //25 assists - Partner in Crime
+        //25 assists - Partner in Crime 👯
+        addBadge(guildId, userId, 12);
     }
 }
 
@@ -194,21 +202,29 @@ async function addSaveCountBadges(guildId, userId) {
     });
 
     if (saves.length === "1") {
-        //1 save badge - Savior
+        //1 save badge - Savior 😇
+        addBadge(guildId, userId, 2);
     }
     else if (saves.length === "5") {
-        //5 saves - To The Rescue
+        //5 saves - To The Rescue ⛑️
+        addBadge(guildId, userId, 5);
     }
     else if (saves.length === "10") {
-        //10 saves - Super Hero
+        //10 saves - Super Hero 🦸
+        addBadge(guildId, userId, 8);
     }
     else if (saves.length === "25") {
-        //Knight in Shining Armor
+        //Knight in Shining Armor 🛡️
+        addBadge(guildId, userId, 11);
     }
 }
 
 async function addBadge(guildId, userId, badgeId) {
-
+    await UserBadges.create({
+        guild_id: guildId,
+        user_id: userId,
+        badge_id: badgeId
+    })
 }
 
 async function addInteraction(game, item, userId, type) {

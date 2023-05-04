@@ -68,10 +68,23 @@ const ItemInteractions = sequelize.define('item_interactions', {
     item_id: Sequelize.INTEGER 
 });
 
+const Badges = sequelize.define('badges', {
+    name: Sequelize.STRING,
+    description: Sequelize.STRING,
+    emoji: Sequelize.STRING,
+    image_url: Sequelize.TEXT
+});
+
 const UserBadges = sequelize.define('user_badges', {
     guild_id: Sequelize.STRING,
     user_id: Sequelize.STRING,
-    badge_id: Sequelize.INTEGER
+    badge_id:  {
+		type: Sequelize.INTEGER,
+        references: {
+            model: Badges,
+            key: 'id'
+        }
+	},
 });
 
 const Themes = sequelize.define('themes', {
@@ -104,7 +117,13 @@ const ThemeItems = sequelize.define('theme_items', {
 const Users = sequelize.define('users', {
 	guild_id: Sequelize.STRING,
     user_id: Sequelize.STRING,
-    badge_id: Sequelize.INTEGER,
+    badge_id:  {
+		type: Sequelize.INTEGER,
+        references: {
+            model: Badges,
+            key: 'id'
+        }
+	},
 });
 
 const ServerAdmins = sequelize.define('server_admins', {
@@ -116,12 +135,6 @@ const ServerAdmins = sequelize.define('server_admins', {
 const GlobalAdmins = sequelize.define('global_admins', {
     user_id: Sequelize.STRING,
     added_user: Sequelize.STRING,
-});
-
-const Badges = sequelize.define('badges', {
-    name: Sequelize.STRING,
-    description: Sequelize.STRING,
-    emoji: Sequelize.STRING
 });
 
 exports.sequelize = sequelize;

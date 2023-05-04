@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { Games, ItemInteractions, GameHistory, sequelize } = require('../../databaseModels.js');
+const { Games, ItemInteractions, GameHistory, sequelize, UserBadges, Badges } = require('../../databaseModels.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -11,26 +11,52 @@ module.exports = {
                 .setDescription('The user to see the stats of, defaults to the user running the command')
                 .setRequired(false)),
     async execute(interaction) {
-        const user = interaction.options.getUser('user');
-        const userId = user ? user.id : interaction.user.id;
+        let user = interaction.options.getUser('user');
+        user = user ? user : interaction.user;
 
-        console.log("User id is:" + userId);
-
-        const killCount = await getInteractionCount(userId, "Kill");
-        const saveCount = await getInteractionCount(userId, "Save");
-        const assistCount = await getInteractionCount(userId, "Assist");
-        const moveCount = (await GameHistory.count({
+        const killCount = await getInteractionCount(user.id, "Kill");
+        const saveCount = await getInteractionCount(user.id, "Save");
+        const assistCount = await getInteractionCount(user.id, "Assist");
+        const swapCount = (await GameHistory.count({
             where: {
-                user_id: userId
+                user_id: user.id
             },
             group: ['user_id', 'turn_number']
         })).length;
 
-        console.log("Move count: " + moveCount);
+        const statsEmbed = new EmbedBuilder()
+            .setColor('#0099ff')
+            .setAuthor({ name: user.tag, iconURL: `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=256`, /*url: 'https://discord.js.org'*/ })
+            .addFields(
+                { name: 'Kills', value: killCount.toString(), inline: true },
+                { name: 'Saves', value: saveCount.toString(), inline: true },
+                { name: 'Assists', value: assistCount.toString(), inline: true },
+                { name: 'Point Swaps', value: swapCount.toString(), inline: true },
+            )
 
-        console.log("Kill count: " + killCount);
+        const badges = await UserBadges.findAll({
+            where: {
+                guild_id: interaction.guildId,
+                user_id: user.id
+            }
+        });
 
-        interaction.reply({ content: "Hi" });
+        if (badges.length) {
+            badgeEmojis = "";
+
+            badges.forEach(badge => {
+                badgeEmojis += getBadgeEmoji(badge);
+            });
+
+            statsEmbed.addFields(
+                { name: 'Badges', value: badgeEmojis, inline: false },
+            );
+        }
+
+        //TODO: Featured badge
+        statsEmbed.setThumbnail("https://em-content.zobj.net/source/microsoft-teams/337/people-with-bunny-ears_1f46f.png");
+
+        interaction.reply({ embeds: [statsEmbed] });
     },
 };
 
@@ -41,4 +67,12 @@ async function getInteractionCount(userId, type) {
             type: type
         }
     });
+}
+
+async function getBadgeEmoji(badge) {
+    return (await Badges.count({
+        where: {
+            id: badge.badge_id
+        }
+    })).emoji;
 }
