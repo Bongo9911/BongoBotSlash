@@ -44,9 +44,9 @@ module.exports = {
         if (badges.length) {
             badgeEmojis = "";
 
-            badges.forEach(badge => {
-                badgeEmojis += getBadgeEmoji(badge);
-            });
+            for(let i = 0; i < badges.length; ++i) {
+                badgeEmojis += await getBadgeEmoji(badges[i]);
+            }
 
             statsEmbed.addFields(
                 { name: 'Badges', value: badgeEmojis, inline: false },
@@ -70,7 +70,7 @@ async function getInteractionCount(userId, type) {
 }
 
 async function getBadgeEmoji(badge) {
-    return (await Badges.count({
+    return (await Badges.findOne({
         where: {
             id: badge.badge_id
         }

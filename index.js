@@ -1,11 +1,11 @@
 require('dotenv').config({ debug: true });
 
 const { Client, Collection, GatewayIntentBits, Events } = require('discord.js');
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.MessageContent] });
 const fs = require('node:fs');
 const path = require('node:path');
 const { sequelize, Games } = require('./databaseModels');
 const { makeMove } = require('./giveandtake/giveandtakefunctions');
+const { client } = require('./client');
 
 client.commands = new Collection();
 
