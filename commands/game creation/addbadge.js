@@ -4,7 +4,7 @@ const { Themes, ThemeItems, Badges } = require('../../databaseModels.js');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('addbadge')
-        .setDescription('Lists available themes for a server')
+        .setDescription('Adds a new badge (only available to Bongo)')
         .addStringOption(option =>
             option
                 .setName('name')
@@ -27,14 +27,19 @@ module.exports = {
                 .setRequired(true))
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction) {
-        
-        await Badges.create({
-            name: interaction.options.getString('name'),
-            description: interaction.options.getString('description'),
-            emoji: interaction.options.getString('emoji'),
-            image_url: interaction.options.getString('url'),
-        })
 
-        interaction.reply({content: "Created!"});
+        if (interaction.user.id === "200313450319052801") {
+            await Badges.create({
+                name: interaction.options.getString('name'),
+                description: interaction.options.getString('description'),
+                emoji: interaction.options.getString('emoji'),
+                image_url: interaction.options.getString('url'),
+            })
+
+            interaction.reply({ content: "Created!" });
+        }
+        else {
+            interaction.reply({ content: "Badges may not be created by anyone other than Bongo" });
+        }
     },
 };

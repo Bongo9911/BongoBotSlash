@@ -1,10 +1,10 @@
 require('dotenv').config({ debug: true });
 
-const { Client, Collection, GatewayIntentBits, Events } = require('discord.js');
+const { Collection, Events } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
-const { sequelize, Games } = require('./databaseModels');
-const { makeMove } = require('./giveandtake/giveandtakefunctions');
+const { sequelize } = require('./databaseModels');
+const { makeMove, checkVoteStatus } = require('./giveandtake/giveandtakefunctions');
 const { client } = require('./client');
 
 client.commands = new Collection();
@@ -30,31 +30,21 @@ for (const folder of commandFolders) {
 }
 
 client.on(Events.MessageCreate, async message => {
-    console.log(message);
-    let content = message.content;
-    if((content.startsWith("+") || content.startsWith("-")) && content.indexOf("+") != -1 && content.indexOf("-") != -1) {
-        const giveName = content.split("+")[1].split("-")[0].trim().toLowerCase();
-        const takeName = content.split("-")[1].split("+")[0].trim().toLowerCase();
-        let reply = await makeMove(message.guildId, message.channelId, message.author.id, giveName, takeName);
-        if ("message" in reply) {
-            message.reply({ content: reply.message });
-        }
-        else if("embed" in reply) {
-            message.reply({ embeds: [reply.embed] });
-        }
-        //TODO: embed
-    }
+	let content = message.content;
+	if ((content.startsWith("+") || content.startsWith("-")) && content.indexOf("+") != -1 && content.indexOf("-") != -1) {
+		const giveName = content.split("+")[1].split("-")[0].trim().toLowerCase();
+		const takeName = content.split("-")[1].split("+")[0].trim().toLowerCase();
+		let reply = await makeMove(message.guildId, message.channelId, message.author.id, giveName, takeName);
+		if ("message" in reply) {
+			message.reply({ content: reply.message });
+		}
+		else if ("embed" in reply) {
+			message.reply({ embeds: [reply.embed] });
+		}
+	}
 })
 
 client.on(Events.InteractionCreate, async interaction => {
-    // await Games.create({
-    //     guild_id: "389594278470615062",
-    //     channel_id: "389594279758135317",
-    //     theme_name: "Test Theme",
-    //     start_user: "200313450319052801",
-    //     status: "ACTIVE"
-    // })
-
 	if (!interaction.isChatInputCommand()) return;
 	const command = interaction.client.commands.get(interaction.commandName);
 
@@ -76,8 +66,13 @@ client.on(Events.InteractionCreate, async interaction => {
 });
 
 client.once(Events.ClientReady, async c => {
-    await sequelize.sync();
+	await sequelize.sync();
 	console.log(`Ready! Logged in as ${c.user.tag}`);
 });
 
 client.login(process.env.TOKEN);
+
+//Check every minute if there is any finished games
+setInterval(async function() {
+	await checkVoteStatus();
+}, 60 * 1000);

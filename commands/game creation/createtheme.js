@@ -166,7 +166,7 @@ async function getColors(message, themeInfo) {
 async function finishCreateTheme(message, themeInfo) {
 
     const theme = await Themes.create({ 
-        server_id: message.guildId,
+        guild_id: message.guildId,
         name: themeInfo.name,
         created_user: message.author.id,
         enabled: true

@@ -21,7 +21,9 @@ const Games = sequelize.define('games', {
 	start_user: Sequelize.STRING,
 	status: Sequelize.STRING, //SWAPPING or VOTING
     turns: Sequelize.INTEGER, //The number of turns in the game
-    active: Sequelize.BOOLEAN
+    active: Sequelize.BOOLEAN,
+    voting_message: Sequelize.STRING,
+    end_time: Sequelize.DATE
 });
 
 const GameItems = sequelize.define('game_items', {

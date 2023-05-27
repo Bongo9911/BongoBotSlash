@@ -3,6 +3,9 @@ const { Op } = require("sequelize");
 const { EmbedBuilder } = require('discord.js');
 const { client } = require('../client');
 
+const reactionEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟",
+    "❤️", "🧡", "💛", "💚", "💙", "💜", "🤎", "🖤", "🤍", "💗"];
+
 async function makeMove(guildId, channelId, userId, giveName, takeName) {
     const game = await Games.findOne({
         where: {
@@ -12,62 +15,73 @@ async function makeMove(guildId, channelId, userId, giveName, takeName) {
         }
     });
 
-    //TODO: enable lol
-    const cooldownEnabled = false;
-    const nextMoveTime = await getUserNextMoveTime(game.id, userId);
+    if (game && game.status === "SWAPPING") {
 
-    if (cooldownEnabled && nextMoveTime > new Date().getTime()) {
-        return { message: "You can make another move <t:" + Math.ceil(nextMoveTime / 1000) + ":R>." }
-    }
+        //TODO: enable lol
+        const cooldownEnabled = false;
+        const nextMoveTime = await getUserNextMoveTime(game.id, userId);
 
-    const giveItem = await getItem(game.id, giveName);
-    const takeItem = await getItem(game.id, takeName);
+        if (cooldownEnabled && nextMoveTime > new Date().getTime()) {
+            return { message: "You can make another move <t:" + Math.ceil(nextMoveTime / 1000) + ":R>." }
+        }
 
-    if (giveItem && takeItem) {
-        if (giveItem.points > 0 && takeItem.points > 0) {
-            //Increase the number of turns taken in the active game
-            await game.increment('turns');
-            await game.reload();
+        const giveItem = await getItem(game.id, giveName);
+        const takeItem = await getItem(game.id, takeName);
 
-            await addPoints(giveItem, 1);
-            await addPoints(takeItem, -1);
+        if (giveItem && takeItem) {
+            if (giveItem.points > 0 && takeItem.points > 0) {
+                //Increase the number of turns taken in the active game
+                await game.increment('turns');
+                await game.reload();
 
-            if (giveItem.points === 2) {
-                await addSave(game, giveItem, userId);
+                await addPoints(giveItem, 1);
+                await addPoints(takeItem, -1);
+
+                if (giveItem.points === 2) {
+                    await addSave(game, giveItem, userId);
+                }
+
+                if (takeItem.points === 0) {
+                    await addKill(game, takeItem, userId);
+                }
+
+                //insert into history table
+                await addHistoryRecord(game, giveItem, userId);
+                await addHistoryRecord(game, takeItem, userId);
+
+                await checkGameStatus(game);
+
+                const pointsEmbed = await buildPointsEmbed(game, takeItem);
+
+                return { embed: pointsEmbed };
             }
-
-            if (takeItem.points === 0) {
-                await addKill(game, takeItem, userId);
+            else {
+                let reply = "";
+                if (giveItem.points === 0) {
+                    reply = "Item '" + giveItem.name + "' has no points to give.";
+                }
+                if (takeItem.points === 0) {
+                    reply += (reply.length ? "\n" : "") + "Item '" + takeItem.name + "' has no points to take.";
+                }
+                return { message: reply };
             }
-
-            //insert into history table
-            await addHistoryRecord(game, giveItem, userId);
-            await addHistoryRecord(game, takeItem, userId);
-
-            const pointsEmbed = await buildPointsEmbed(game, takeItem);
-
-            return { embed: pointsEmbed };
         }
         else {
             let reply = "";
-            if (giveItem.points === 0) {
-                reply = "Item '" + giveItem.name + "' has no points to give.";
+            if (!giveItem) {
+                reply = "Item '" + giveName + "' not found.";
             }
-            if (takeItem.points === 0) {
-                reply += (reply.length ? "\n" : "") + "Item '" + takeItem.name + "' has no points to take.";
+            if (!takeItem) {
+                reply += (reply.length ? "\n" : "") + "Item '" + takeName + "' not found.";
             }
             return { message: reply };
         }
     }
+    else if (game && game.status === "VOTING") {
+        return { message: "Point swaps may not be made while the game is in the voting stage." };
+    }
     else {
-        let reply = "";
-        if (!giveItem) {
-            reply = "Item '" + giveName + "' not found.";
-        }
-        if (!takeItem) {
-            reply += (reply.length ? "\n" : "") + "Item '" + takeName + "' not found.";
-        }
-        return { message: reply };
+        return { message: "There is currently no active game in this channel." };
     }
 }
 
@@ -126,6 +140,7 @@ async function addKill(game, item, userId) {
     if (lastTake && lastTake.user_id !== userId) {
         await addInteraction(game, item, lastTake.user_id, "Assist");
         await addAssistCountBadges(game, userId);
+        await addSpecialAssistBadges(game, item, userId);
     }
 }
 
@@ -217,14 +232,14 @@ async function addSaveCountBadges(game, userId) {
 }
 
 async function addSpecialKillBadges(game, item, userId) {
-    const killCount = await ItemInteractions.count({
+    const gameKillCount = await ItemInteractions.count({
         where: {
             game_id: game.id,
             type: "Kill"
         }
     });
 
-    if (killCount === 0) {
+    if (gameKillCount === 0 && !userHasBadge(game, userId, 13)) {
         //First blood
         await addBadge(game, userId, 13);
     }
@@ -235,10 +250,39 @@ async function addSpecialKillBadges(game, item, userId) {
             }
         });
 
-        if (killCount === itemCount - 2) {
+        if (gameKillCount === itemCount - 2 && !userHasBadge(game, userId, 14)) {
             //Finishing Blow
             await addBadge(game, userId, 14);
         }
+    }
+
+    const userGameKillCount = await ItemInteractions.count({
+        where: {
+            game_id: game.id,
+            type: "Kill",
+            user_id: userId
+        }
+    });
+
+    if (userGameKillCount === 3 && !userHasBadge(game, userId, 17)) {
+        //Triple Kill
+        await addBadge(game, userId, 17);
+    }
+
+    const lastKill = await ItemInteractions.findOne({
+        order: [['id', 'DESC']],
+        where: {
+            game_id: game.id,
+            item_id: {
+                [Op.not]: item.id
+            },
+            type: "Kill"
+        }
+    });
+
+    if (lastKill.user_id !== userId && !userHasBadge(game, userId, 20)) {
+        //Two to Tango
+        await addBadge(game, userId, 20);
     }
 
     const lastSave = await ItemInteractions.findOne({
@@ -250,7 +294,7 @@ async function addSpecialKillBadges(game, item, userId) {
         }
     });
 
-    if (lastSave && Date.parse(lastSave.createdAt) <= Date.now().getTime() - (5 * 60 * 1000)) {
+    if (lastSave && Date.parse(lastSave.createdAt) <= Date.now().getTime() - (5 * 60 * 1000) && !userHasBadge(game, userId, 16)) {
         //Memento Mori
         await addBadge(game, userId, 16);
     }
@@ -265,9 +309,37 @@ async function addSpecialSaveBadges(game, item, userId) {
         }
     });
 
-    if(saveCount >= 2) {
+    if (saveCount >= 2 && !userHasBadge(game, userId, 15)) {
         //Double Trouble
         await addBadge(game, userId, 15);
+    }
+
+    const userGameSaveCount = await ItemInteractions.count({
+        where: {
+            game_id: game.id,
+            type: "Save",
+            user_id: userId
+        }
+    });
+
+    if (userGameSaveCount === 3 && !userHasBadge(game, userId, 18)) {
+        //Three's A Crowd
+        await addBadge(game, userId, 18);
+    }
+}
+
+async function addSpecialAssistBadges(game, item, userId) {
+    const userGameAssistCount = await ItemInteractions.count({
+        where: {
+            game_id: game.id,
+            type: "Assist",
+            user_id: userId
+        }
+    });
+
+    if (userGameAssistCount === 3 && !userHasBadge(game, userId, 19)) {
+        //Third Time's The Charm
+        await addBadge(game, userId, 19);
     }
 }
 
@@ -291,6 +363,18 @@ async function addBadge(game, userId, badgeId) {
     }
 }
 
+async function userHasBadge(game, userId, badgeId) {
+    const userBadge = await UserBadges.findOne({
+        where: {
+            guild_id: game.guild_id,
+            user_id: userId,
+            badge_id: badgeId
+        }
+    });
+
+    return userBadge != null;
+}
+
 async function addInteraction(game, item, userId, type) {
     await ItemInteractions.create({
         game_id: game.id,
@@ -310,6 +394,56 @@ async function addHistoryRecord(game, item, userId) {
         points: item.points,
         user_id: userId
     })
+}
+
+async function checkGameStatus(game) {
+    const items = await GameItems.findAll({
+        where: {
+            game_id: game.id,
+            points: {
+                [Op.gt]: 0
+            }
+        }
+    });
+
+    //2 items left, end game
+    if (items.length === 2) {
+        const endTime = new Date();
+        endTime.setHours(endTime.getHours() + 4);
+
+        let description = "**Voting ends** <t:" + Math.ceil(endTime.getTime() / 1000) + ":R>\n";
+
+        description += "**Options**\n";
+
+        for (let i = 0; i < items.length; ++i) {
+            description += reactionEmojis[i] + " - " + (items[i].emoji ? items[i].emoji + " " : "") + items[i].name + ((i + 1) < items.length ? "\n" : "");
+        }
+
+        const pollEmbed = new EmbedBuilder()
+            .setColor('#0099ff')
+            .setTitle("📊 FINAL 2 - React to vote")
+            .setDescription(description);
+
+        const channel = client.channels.cache.get(game.channel_id);
+
+        if (channel) {
+            const message = await channel.send({ embeds: [pollEmbed] });
+
+            let tempTest = new Date();
+            tempTest = tempTest.setMinutes(tempTest.getMinutes() + 1);
+
+            //Switch to the voting stage
+            game.status = "VOTING";
+            // game.end_time = endTime;
+            game.end_time = tempTest;
+            game.voting_message = message.id;
+            await game.save();
+
+            for (let i = 0; i < items.length; ++i) {
+                await message.react(reactionEmojis[i]);
+            }
+        }
+    }
 }
 
 async function buildPointsEmbed(game, takeItem) {
@@ -361,4 +495,67 @@ async function buildPointsEmbed(game, takeItem) {
     return pointsEmbed;
 }
 
+
+async function checkVoteStatus() {
+    const finishedGames = await Games.findAll({
+        where: {
+            active: true,
+            end_time: {
+                [Op.lt]: new Date()
+            }
+        }
+    });
+
+    finishedGames.forEach(async game => {
+        const gameItems = await GameItems.findAll({
+            where: {
+                game_id: game.id,
+                points: {
+                    [Op.gt]: 0
+                }
+            }
+        });
+
+        if (gameItems.length > 0) {
+            const channel = client.channels.cache.get(game.channel_id);
+            const voteMessage = await channel.messages.fetch(game.voting_message);
+
+            let reactionCount = [];
+
+            for (let i = 0; i < gameItems.length; ++i) {
+                reactionCount.push(voteMessage.reactions.cache.get(reactionEmojis[i]).count - 1);
+            }
+
+            let maxReactionCount = Math.max(...reactionCount);
+
+            let winningItems = gameItems.filter((item, i) => reactionCount[i] === maxReactionCount);
+
+            let message = "";
+
+            if (winningItems.length === 1) {
+                message = "**" + winningItems[0].name + "** has won the game with " + maxReactionCount + " vote(s)!";
+            }
+            else if (winningItems.length === gameItems.length) {
+                message = "The game has ended in a tie with all items receiving " + maxReactionCount + " vote(s)!";
+            }
+            else {
+                for (let i = 0; i < winningItems.length; ++i) {
+                    if (i !== winningItems.length - 1) {
+                        message += "**" + winningItems[i].name + "**, ";
+                    }
+                    else {
+                        message += "and **" + winningItems[i].name + "** have tied with " + maxReactionCount + " vote(s)!";
+                    }
+                }
+            }
+
+            await channel.send(message);
+
+            game.active = false;
+            await game.save();
+        }
+    });
+}
+
 exports.makeMove = makeMove;
+exports.checkVoteStatus = checkVoteStatus;
