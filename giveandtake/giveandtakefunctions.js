@@ -280,7 +280,7 @@ async function addSpecialKillBadges(game, item, userId) {
         }
     });
 
-    if (lastKill.user_id !== userId && !(await userHasBadge(game, userId, 20))) {
+    if (lastKill && lastKill.user_id !== userId && !(await userHasBadge(game, userId, 20))) {
         //Two to Tango
         await addBadge(game, userId, 20);
     }
@@ -430,13 +430,9 @@ async function checkGameStatus(game) {
         if (channel) {
             const message = await channel.send({ embeds: [pollEmbed] });
 
-            let tempTest = new Date();
-            tempTest = tempTest.setMinutes(tempTest.getMinutes() + 1);
-
             //Switch to the voting stage
             game.status = "VOTING";
-            // game.end_time = endTime;
-            game.end_time = tempTest;
+            game.end_time = endTime;
             game.voting_message = message.id;
             await game.save();
 
