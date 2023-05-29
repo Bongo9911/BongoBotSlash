@@ -60,8 +60,6 @@ module.exports = {
             );
         }
 
-        console.log(userInfo);
-
         if (userInfo && 'badge_id' in userInfo && userInfo.badge_id) {
             const featuredBadge = await Badges.findOne({
                 where: {

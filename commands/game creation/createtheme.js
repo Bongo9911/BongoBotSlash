@@ -58,7 +58,6 @@ async function getItems(interaction, themeInfo) {
 
 //TODO: verify unique ids
 async function getIDs(message, themeInfo) {
-    console.log(message)
     const collectorFilter = m => m.author.id === message.author.id
 
     await message.reply({

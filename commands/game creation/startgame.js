@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { Themes, ThemeItems, Games, GameItems } = require('../../databaseModels.js');
+const { Themes, ThemeItems, Games, GameItems, GameHistory } = require('../../databaseModels.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -55,7 +55,7 @@ module.exports = {
                 });
 
                 for(let i = 0; i < items.length; ++i) {
-                    await GameItems.create({
+                    const item = await GameItems.create({
                         game_id: game.id,
                         label: items[i].label,
                         name: items[i].name,
@@ -63,9 +63,15 @@ module.exports = {
                         emoji: items[i].emoji,
                         points: points
                     });
-                }
 
-                //TODO: Insert into history table
+                    await GameHistory.create({
+                        game_id: game.id,
+                        item_id: item.id,
+                        turn_number: 0,
+                        points: points,
+                        user_id: null
+                    });
+                }
 
                 interaction.reply({ content: "Game started with theme: '" + themeName + "'" })
             }

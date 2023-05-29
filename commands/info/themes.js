@@ -8,7 +8,8 @@ module.exports = {
     async execute(interaction) {
         let themes = await Themes.findAll({
             where: {
-                guild_id: interaction.guildId
+                guild_id: interaction.guildId,
+                enabled: true
             }
         });
 
