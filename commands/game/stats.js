@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { Games, ItemInteractions, GameHistory, sequelize, UserBadges, Badges } = require('../../databaseModels.js');
+const { Games, ItemInteractions, GameHistory, sequelize, UserBadges, Badges, Users } = require('../../databaseModels.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -13,6 +13,13 @@ module.exports = {
     async execute(interaction) {
         let user = interaction.options.getUser('user');
         user = user ? user : interaction.user;
+
+        const userInfo = await Users.findOne({
+            where: {
+                user_id: user.id,
+                guild_id: interaction.guildId
+            }
+        })
 
         const killCount = await getInteractionCount(user.id, "Kill");
         const saveCount = await getInteractionCount(user.id, "Save");
@@ -44,7 +51,7 @@ module.exports = {
         if (badges.length) {
             badgeEmojis = "";
 
-            for(let i = 0; i < badges.length; ++i) {
+            for (let i = 0; i < badges.length; ++i) {
                 badgeEmojis += await getBadgeEmoji(badges[i]);
             }
 
@@ -53,8 +60,17 @@ module.exports = {
             );
         }
 
-        //TODO: Featured badge
-        statsEmbed.setThumbnail("https://em-content.zobj.net/source/microsoft-teams/337/people-with-bunny-ears_1f46f.png");
+        console.log(userInfo);
+
+        if (userInfo && 'badge_id' in userInfo && userInfo.badge_id) {
+            const featuredBadge = await Badges.findOne({
+                where: {
+                    id: userInfo.badge_id
+                }
+            });
+
+            statsEmbed.setThumbnail(featuredBadge.image_url);
+        }
 
         interaction.reply({ embeds: [statsEmbed] });
     },

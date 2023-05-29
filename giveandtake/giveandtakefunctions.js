@@ -239,7 +239,7 @@ async function addSpecialKillBadges(game, item, userId) {
         }
     });
 
-    if (gameKillCount === 0 && !userHasBadge(game, userId, 13)) {
+    if (gameKillCount === 0 && !(await userHasBadge(game, userId, 13))) {
         //First blood
         await addBadge(game, userId, 13);
     }
@@ -250,7 +250,7 @@ async function addSpecialKillBadges(game, item, userId) {
             }
         });
 
-        if (gameKillCount === itemCount - 2 && !userHasBadge(game, userId, 14)) {
+        if (gameKillCount === itemCount - 2 && !(await userHasBadge(game, userId, 14))) {
             //Finishing Blow
             await addBadge(game, userId, 14);
         }
@@ -264,7 +264,7 @@ async function addSpecialKillBadges(game, item, userId) {
         }
     });
 
-    if (userGameKillCount === 3 && !userHasBadge(game, userId, 17)) {
+    if (userGameKillCount === 3 && !(await userHasBadge(game, userId, 17))) {
         //Triple Kill
         await addBadge(game, userId, 17);
     }
@@ -280,7 +280,7 @@ async function addSpecialKillBadges(game, item, userId) {
         }
     });
 
-    if (lastKill.user_id !== userId && !userHasBadge(game, userId, 20)) {
+    if (lastKill.user_id !== userId && !(await userHasBadge(game, userId, 20))) {
         //Two to Tango
         await addBadge(game, userId, 20);
     }
@@ -294,7 +294,8 @@ async function addSpecialKillBadges(game, item, userId) {
         }
     });
 
-    if (lastSave && Date.parse(lastSave.createdAt) <= Date.now().getTime() - (5 * 60 * 1000) && !userHasBadge(game, userId, 16)) {
+    if (lastSave && Date.parse(lastSave.createdAt) <= Date.now().getTime() - (5 * 60 * 1000) &&
+        !(await userHasBadge(game, userId, 16))) {
         //Memento Mori
         await addBadge(game, userId, 16);
     }
@@ -309,7 +310,7 @@ async function addSpecialSaveBadges(game, item, userId) {
         }
     });
 
-    if (saveCount >= 2 && !userHasBadge(game, userId, 15)) {
+    if (saveCount >= 2 && !(await userHasBadge(game, userId, 15))) {
         //Double Trouble
         await addBadge(game, userId, 15);
     }
@@ -322,7 +323,7 @@ async function addSpecialSaveBadges(game, item, userId) {
         }
     });
 
-    if (userGameSaveCount === 3 && !userHasBadge(game, userId, 18)) {
+    if (userGameSaveCount === 3 && !(await userHasBadge(game, userId, 18))) {
         //Three's A Crowd
         await addBadge(game, userId, 18);
     }
@@ -337,7 +338,7 @@ async function addSpecialAssistBadges(game, item, userId) {
         }
     });
 
-    if (userGameAssistCount === 3 && !userHasBadge(game, userId, 19)) {
+    if (userGameAssistCount === 3 && !(await userHasBadge(game, userId, 19))) {
         //Third Time's The Charm
         await addBadge(game, userId, 19);
     }
