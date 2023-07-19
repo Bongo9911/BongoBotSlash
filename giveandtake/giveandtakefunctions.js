@@ -6,6 +6,9 @@ const { client } = require('../client');
 const reactionEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟",
     "❤️", "🧡", "💛", "💚", "💙", "💜", "🤎", "🖤", "🤍", "💗"];
 
+//TODO: enable lol
+const cooldownEnabled = false;
+
 async function makeMove(guildId, channelId, userId, giveName, takeName) {
     const game = await Games.findOne({
         where: {
@@ -16,9 +19,6 @@ async function makeMove(guildId, channelId, userId, giveName, takeName) {
     });
 
     if (game && game.status === "SWAPPING") {
-
-        //TODO: enable lol
-        const cooldownEnabled = false;
         const nextMoveTime = await getUserNextMoveTime(game.id, userId);
 
         if (cooldownEnabled && nextMoveTime > new Date().getTime()) {

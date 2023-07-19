@@ -34,7 +34,7 @@ let colors = [
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('graph')
-        .setDescription('Shows information about a theme'),
+        .setDescription('Creates a graph with all the point swaps from the active game'),
     async execute(interaction) {
 
         const activeGame = await Games.findOne({
