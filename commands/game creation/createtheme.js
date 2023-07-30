@@ -17,6 +17,7 @@ module.exports = {
 
         let matchingThemes = await Themes.findAll({
             where: {
+                guild_id: interaction.guildId,
                 name: themeName
             }
         })
