@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder } = require('discord.js');
 const { Themes, ThemeItems, GameHistory, GameItems, Games } = require('../../databaseModels.js');
-const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
+const QuickChart = require('quickchart-js');
 
 let colors = [
     [255, 0, 0],
@@ -83,6 +83,7 @@ module.exports = {
                 datasets.push({
                     label: items[i].name,
                     data: fullData[i],
+                    fill: false,
                     //TODO: Color is in hex right now, need to convert to RGB
                     borderColor: items[i].color ? ['rgba(' + items[i].color[0] + "," + items[i].color[1] + "," + items[i].color[2] + ", 1)"] :
                         ['rgba(' + Math.round(colors[i % colors.length][0] / (1 + Math.floor(i / colors.length))) + ',' + Math.round(colors[i % colors.length][1] / (1 + Math.floor(i / colors.length)))
@@ -93,11 +94,9 @@ module.exports = {
                 })
             }
 
-            const renderer = new ChartJSNodeCanvas({ width: 800, height: 600, backgroundColour: 'white' });
-            renderer.renderToBuffer({
-                // Build your graph passing option you want
-                type: "line", // Show a line chart
-                backgroundColor: "rgba(236,197,1)",
+            const chart = new QuickChart();
+            chart.setConfig({
+                type: "line",
                 data: {
                     labels: [...Array(fullData[0].length).fill().map((_, idx) => idx)],
                     datasets: datasets
@@ -109,18 +108,21 @@ module.exports = {
                         }
                     }
                 }
-            }).then(image => {
-                const attachment = new AttachmentBuilder(image, { name: "graph.png" });
-
-                const graphEmbed = new EmbedBuilder()
-                    .setColor('#0099ff')
-                    .setTitle("Point Graph")
-                    .setImage('attachment://graph.png')
-                    .setTimestamp()
-                    .setFooter({ text: '/graph', iconURL: 'https://i.imgur.com/kk9lhk3.png' });
-
-                interaction.reply({ embeds: [graphEmbed], files: [attachment] });
             })
+                .setWidth(800)
+                .setHeight(600)
+                .setVersion("4.3.2");
+
+            const chartURL = await chart.getShortUrl();
+
+            const graphEmbed = new EmbedBuilder()
+                .setColor('#0099ff')
+                .setTitle("Point Graph")
+                .setImage(chartURL)
+                .setTimestamp()
+                .setFooter({ text: '/graph', iconURL: 'https://i.imgur.com/kk9lhk3.png' });
+
+            interaction.reply({ embeds: [graphEmbed] });
         }
         else {
             interaction.reply("There is not active game in this channel.");
