@@ -34,7 +34,11 @@ module.exports = {
                             let option = message.content.trim().toLowerCase();
                             if (option == "yes") {
                                 message.reply("Deleting theme...");
-                                await matchingTheme.destroy();
+                                await Themes.destroy({
+                                    where: {
+                                        id: matchingTheme.id
+                                    }
+                                })
                             }
                             else {
                                 message.reply("Cancelling remove theme request.");
