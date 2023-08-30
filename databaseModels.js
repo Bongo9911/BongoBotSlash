@@ -100,6 +100,9 @@ const Themes = sequelize.define('themes', {
     name: Sequelize.TEXT,
     created_user: Sequelize.STRING,
     enabled: Sequelize.BOOLEAN
+},
+{
+    paranoid: true
 });
 
 const ThemeItems = sequelize.define('theme_items', {
