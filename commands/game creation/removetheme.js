@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
-const { Themes } = require('../../databaseModels.js');
+const { Themes, ThemeItems } = require('../../databaseModels.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -36,6 +36,12 @@ module.exports = {
                                 console.log("Deleting theme")
                                 console.log(matchingTheme);
                                 message.reply("Deleting theme...");
+                                await ThemeItems.destroy({
+                                    where: {
+                                        theme_id: matchingTheme.id
+                                    },
+                                    force: true
+                                });
                                 await Themes.destroy({
                                     where: {
                                         id: matchingTheme.id
