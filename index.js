@@ -4,7 +4,7 @@ const { Collection, Events } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 const { sequelize } = require('./databaseModels');
-const { makeMove, checkVoteStatus } = require('./giveandtake/giveandtakefunctions');
+const { makeMove, checkVoteStatus, createBadges } = require('./giveandtake/giveandtakefunctions');
 const { client } = require('./client');
 
 client.commands = new Collection();
@@ -68,6 +68,8 @@ client.on(Events.InteractionCreate, async interaction => {
 client.once(Events.ClientReady, async c => {
 	await sequelize.sync();
 	console.log(`Ready! Logged in as ${c.user.tag}`);
+
+	await createBadges();
 });
 
 client.login(process.env.TOKEN);

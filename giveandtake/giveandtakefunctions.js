@@ -2,6 +2,7 @@ const { GameItems, ItemInteractions, GameHistory, Games, UserBadges, sequelize, 
 const { Op } = require("sequelize");
 const { EmbedBuilder } = require('discord.js');
 const { client } = require('../client');
+const fs = require('node:fs');
 
 const reactionEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟",
     "❤️", "🧡", "💛", "💚", "💙", "💜", "🤎", "🖤", "🤍", "💗"];
@@ -553,5 +554,34 @@ async function checkVoteStatus() {
     });
 }
 
+async function createBadges() {
+    fs.readFile("./badges.json", "utf8", async (err, jsonString) => {
+        if (err) {
+            console.error("Error readin file: " + err);
+            return;
+        }
+        const badges = JSON.parse(jsonString);
+        badges.forEach(async (b) => {
+            const badge = await Badges.findOne({
+                where: {
+                    "id": b.id
+                }
+            });
+
+            if (!badge) {
+                console.log("Creating badge: " + b.name)
+                await Badges.create({
+                    id: b.id,
+                    name: b.name,
+                    description: b.description,
+                    emoji: b.emoji,
+                    image_url: b.image_url
+                });
+            }
+        })
+    });
+}
+
 exports.makeMove = makeMove;
 exports.checkVoteStatus = checkVoteStatus;
+exports.createBadges = createBadges;

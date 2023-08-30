@@ -1,0 +1,142 @@
+[
+    {
+        "id": 1,
+        "name": "Dead To Me",
+        "description": "Get your first kill",
+        "emoji": "☠️",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/337/skull-and-crossbones_2620-fe0f.png"
+    },
+    {
+        "id": 2,
+        "name": "Savior",
+        "description": "Get your first save",
+        "emoji": "😇",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/337/smiling-face-with-halo_1f607.png"
+    },
+    {
+        "id": 3,
+        "name": "Helping Hand",
+        "description": "Get your first assist",
+        "emoji": "🫶",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/337/heart-hands_1faf6.png"
+    },
+    {
+        "id": 4,
+        "name": "Hunter",
+        "description": "Get 5 kills",
+        "emoji": "🏹",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/337/bow-and-arrow_1f3f9.png"
+    },
+    {
+        "id": 5,
+        "name": "To The Rescue",
+        "description": "Get 5 saves",
+        "emoji": "⛑️",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/337/rescue-workers-helmet_26d1-fe0f.png"
+    },
+    {
+        "id": 6,
+        "name": "True Home",
+        "description": "Get 5 assists",
+        "emoji": "🫂",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/337/people-hugging_1fac2.png"
+    },
+    {
+        "id": 7,
+        "name": "Hitman",
+        "description": "Get 10 kills",
+        "emoji": "🔫",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/337/pistol_1f52b.png"
+    },
+    {
+        "id": 8,
+        "name": "Super Hero",
+        "description": "Get 10 saves",
+        "emoji": "🦸",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/337/superhero_1f9b8.png"
+    },
+    {
+        "id": 9,
+        "name": "Here To Help",
+        "description": "Get 10 assists",
+        "emoji": "❤️‍🔥",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/337/heart-on-fire_2764-fe0f-200d-1f525.png"
+    },
+    {
+        "id": 10,
+        "name": "Serial Killer",
+        "description": "Get 25 kills",
+        "emoji": "🔪",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/337/kitchen-knife_1f52a.png"
+    },
+    {
+        "id": 11,
+        "name": "Knight In Shining Armor",
+        "description": "Get 25 saves",
+        "emoji": "🛡️",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/337/shield_1f6e1-fe0f.png"
+    },
+    {
+        "id": 12,
+        "name": "Partner In Crime",
+        "description": "Get 25 assists",
+        "emoji": "👯",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/337/people-with-bunny-ears_1f46f.png"
+    },
+    {
+        "id": 13,
+        "name": "First Blood",
+        "description": "Get the first kill of the game",
+        "emoji": "🩸",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/337/drop-of-blood_1fa78.png"
+    },
+    {
+        "id": 14,
+        "name": "Finishing Blow",
+        "description": "Get the last kill of the game",
+        "emoji": "💥",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/337/collision_1f4a5.png"
+    },
+    {
+        "id": 15,
+        "name": "Double Trouble",
+        "description": "Save something that has already been saved",
+        "emoji": "🐫",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/337/two-hump-camel_1f42b.png"
+    },
+    {
+        "id": 16,
+        "name": "Memento Mori",
+        "description": "Kill something within 5 minutes of it being saved",
+        "emoji": "🧟",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/337/zombie_1f9df.png"
+    },
+    {
+        "id": 17,
+        "name": "Triple Kill",
+        "description": "Get 3 kills in a single game",
+        "emoji": "🤯",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/363/exploding-head_1f92f.png"
+    },
+    {
+        "id": 18,
+        "name": "Three's A Crowd",
+        "description": "Get 3 saves in a single game",
+        "emoji": "👨‍👨‍👦",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/363/family-man-man-boy_1f468-200d-1f468-200d-1f466.png"
+    },
+    {
+        "id": 19,
+        "name": "Third Time's The Charm",
+        "description": "Get 3 assists in a single game",
+        "emoji": "🦮",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/363/guide-dog_1f9ae.png"
+    },
+    {
+        "id": 20,
+        "name": "Two To Tango",
+        "description": "Get 2 kills in a row",
+        "emoji": "💃",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/363/woman-dancing_1f483.png"
+    }
+]
