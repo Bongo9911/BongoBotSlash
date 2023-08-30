@@ -33,7 +33,7 @@ module.exports = {
 
         const statsEmbed = new EmbedBuilder()
             .setColor('#0099ff')
-            .setAuthor({ name: user.tag, iconURL: `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=256`, /*url: 'https://discord.js.org'*/ })
+            .setAuthor({ name: user.username, iconURL: `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=256`, /*url: 'https://discord.js.org'*/ })
             .addFields(
                 { name: 'Kills', value: killCount.toString(), inline: true },
                 { name: 'Saves', value: saveCount.toString(), inline: true },
