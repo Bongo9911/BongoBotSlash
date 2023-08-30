@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
-const { Themes, ThemeItems } = require('../../databaseModels.js');
+const { Themes } = require('../../databaseModels.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -12,6 +12,7 @@ module.exports = {
                 .setRequired(true))
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
     async execute(interaction) {
+        await interaction.deferReply();
 
         let themeName = interaction.options.getString('name').trim();
 
@@ -23,7 +24,8 @@ module.exports = {
         })
 
         if (matchingTheme) {
-            await interaction.deferReply();
+            const collectorFilter = m => m.author.id === interaction.user.id
+
             await interaction.followUp({ content: "Are you sure you'd like to remove this theme? (Yes/No)", fetchReply: true })
                 .then(() => {
                     interaction.channel.awaitMessages({ filter: collectorFilter, max: 1, time: 60000, errors: ['time'] })
@@ -44,7 +46,7 @@ module.exports = {
                 });
         }
         else {
-            await interaction.reply({ content: "Theme: " + themeName + " not found." });
+            await interaction.followUp({ content: "Theme: " + themeName + " not found." });
         }
     },
 };
