@@ -33,6 +33,8 @@ module.exports = {
                             const message = collected.first();
                             let option = message.content.trim().toLowerCase();
                             if (option == "yes") {
+                                console.log("Deleting theme")
+                                console.log(matchingTheme);
                                 message.reply("Deleting theme...");
                                 await Themes.destroy({
                                     where: {
