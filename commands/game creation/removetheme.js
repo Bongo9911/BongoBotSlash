@@ -37,7 +37,8 @@ module.exports = {
                                 await Themes.destroy({
                                     where: {
                                         id: matchingTheme.id
-                                    }
+                                    },
+                                    force: true
                                 })
                             }
                             else {
