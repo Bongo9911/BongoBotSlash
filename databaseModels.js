@@ -99,9 +99,14 @@ const Themes = sequelize.define('themes', {
     guild_id: Sequelize.STRING,
     name: Sequelize.TEXT,
     created_user: Sequelize.STRING,
-    enabled: Sequelize.BOOLEAN
+    enabled: Sequelize.BOOLEAN,
+    deletedAt: {
+        type: Sequelize.DATE,
+        allowNull: false
+    }
 },
 {
+    timestamps: true,
     paranoid: true
 });
 

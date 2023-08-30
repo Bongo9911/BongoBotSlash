@@ -48,6 +48,7 @@ module.exports = {
                             }
                         })
                         .catch(collected => {
+                            console.error(collected);
                             interaction.followUp('Request Timed Out.');
                         });
                 });
