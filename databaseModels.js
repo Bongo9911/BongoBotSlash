@@ -102,7 +102,7 @@ const Themes = sequelize.define('themes', {
     enabled: Sequelize.BOOLEAN,
     deletedAt: {
         type: Sequelize.DATE,
-        allowNull: false
+        allowNull: true
     }
 },
 {
