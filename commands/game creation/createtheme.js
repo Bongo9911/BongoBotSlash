@@ -15,14 +15,14 @@ module.exports = {
 
         let themeName = interaction.options.getString('name').trim();
 
-        let matchingThemes = await Themes.findAll({
+        let matchingTheme = await Themes.findOne({
             where: {
                 guild_id: interaction.guildId,
                 name: themeName
             }
         })
 
-        if (matchingThemes.length === 0) {
+        if (!matchingTheme) {
             let themeInfo = {};
             themeInfo.name = themeName;
             await interaction.deferReply();
