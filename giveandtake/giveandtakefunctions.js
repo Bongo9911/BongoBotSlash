@@ -111,12 +111,8 @@ async function getItem(gameId, item) {
         where: {
             game_id: gameId,
             [Op.or]: [
-                {
-                    label: item
-                },
-                {
-                    name: item
-                }
+                sequelize.where(sequelize.fn('lower', sequelize.col('label')), item),
+                sequelize.where(sequelize.fn('lower', sequelize.col('name')), item),
             ]
         }
     });
@@ -364,7 +360,7 @@ async function addBadge(game, userId, badgeId) {
     const channel = client.channels.cache.get(game.channel_id);
 
     if (channel) {
-        channel.send("<@" + userId + "> Badge awarded - " + badge.name + "!");
+        channel.send("<@" + userId + "> Badge awarded - " + badge.emoji + " " + badge.name + "!");
     }
 }
 
@@ -464,7 +460,7 @@ async function buildPointsEmbed(game, takeItem) {
         }
     });
 
-    let columns = Math.ceil(items.length / 20);
+    let columns = Math.min(Math.ceil(items.length / 20), 3);
     let perColumn = Math.ceil(items.length / columns);
 
     const pointsEmbed = new EmbedBuilder()
