@@ -139,8 +139,8 @@ async function addKill(game, item, userId) {
     //User who kills can't also get assist
     if (lastTake && lastTake.user_id !== userId) {
         await addInteraction(game, item, lastTake.user_id, "Assist");
-        await addAssistCountBadges(game, userId);
-        await addSpecialAssistBadges(game, item, userId);
+        await addAssistCountBadges(game, lastTake.user_id);
+        await addSpecialAssistBadges(game, item, lastTake.user_id);
     }
 }
 

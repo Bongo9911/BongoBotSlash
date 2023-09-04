@@ -89,26 +89,28 @@ const UserBadges = sequelize.define('user_badges', {
     },
 });
 
-const Themes = sequelize.define('themes', {
-    id: {
-        type: Sequelize.INTEGER,
-        unique: true,
-        autoIncrement: true,
-        primaryKey: true
+const Themes = sequelize.define('themes',
+    {
+        id: {
+            type: Sequelize.INTEGER,
+            unique: true,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        guild_id: Sequelize.STRING,
+        name: Sequelize.TEXT,
+        created_user: Sequelize.STRING,
+        enabled: Sequelize.BOOLEAN,
+        deletedAt: {
+            type: Sequelize.DATE,
+            allowNull: true
+        }
     },
-    guild_id: Sequelize.STRING,
-    name: Sequelize.TEXT,
-    created_user: Sequelize.STRING,
-    enabled: Sequelize.BOOLEAN,
-    deletedAt: {
-        type: Sequelize.DATE,
-        allowNull: true
-    }
-},
     {
         timestamps: true,
         paranoid: true
-    });
+    }
+);
 
 const ThemeItems = sequelize.define('theme_items', {
     theme_id: {
@@ -149,8 +151,17 @@ const GlobalAdmins = sequelize.define('global_admins', {
 
 //TODO: https://sequelize.org/docs/v6/advanced-association-concepts/eager-loading/
 
-// UserBadges.belongsTo(Users, { foreignKey: 'user_id' });
+GameItems.belongsTo(Games, { foreignKey: 'game_id' });
+GameHistory.belongsTo(Games, { foreignKey: 'game_id' });
+
+ItemInteractions.belongsTo(Games, { foreignKey: 'game_id' });
+ItemInteractions.belongsTo(Users, { foreignKey: 'user_id' });
+ItemInteractions.belongsTo(GameItems, { foreignKey: 'item_id' });
+
+UserBadges.belongsTo(Users, { sourceKey: "user_id", foreignKey: 'user_id' });
 UserBadges.hasOne(Badges, { sourceKey: "badge_id", foreignKey: 'id' });
+
+ThemeItems.belongsTo(Themes, { foreignKey: "theme_id" });
 
 exports.sequelize = sequelize;
 exports.Games = Games;
