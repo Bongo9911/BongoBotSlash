@@ -31,8 +31,8 @@ module.exports = {
             });
 
             list += "`" + getRankString(i + 1) + ".` <@" + totals[i].user_id + "> `" +
-                totals[i].dataValues.count + " badge" + (totals[i].dataValues.count != 1 ? "s`\n" : "`\n") + 
-                badges.map(b => b.badge.emoji).join('');
+                totals[i].dataValues.count + " badge" + (totals[i].dataValues.count != 1 ? "s`" : "`") + 
+                badges.map(b => b.badge.emoji).join('') + "\n";
         }
 
         if (list.length) {
