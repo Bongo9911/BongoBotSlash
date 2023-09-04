@@ -17,6 +17,8 @@ module.exports = {
                 .setRequired(true)
         ),
     async execute(interaction) {
+        await interaction.deferReply();
+
         const activeGame = await Games.findOne({
             where: {
                 guild_id: interaction.guildId,
@@ -73,7 +75,7 @@ module.exports = {
                     });
                 }
 
-                interaction.reply({ content: "Game started with theme: '" + themeName + "'" })
+                interaction.followUp({ content: "Game started with theme: '" + themeName + "'" })
             }
             else {
                 interaction.reply({ content: "Theme '" + themeName + "' not found or not available." })

@@ -294,7 +294,7 @@ async function addSpecialKillBadges(game, item, userId) {
         }
     });
 
-    if (lastSave && Date.parse(lastSave.createdAt) <= Date.now().getTime() - (5 * 60 * 1000) &&
+    if (lastSave && Date.parse(lastSave.createdAt) <= Date.now() - (5 * 60 * 1000) &&
         !(await userHasBadge(game, userId, 16))) {
         //Memento Mori
         await addBadge(game, userId, 16);
