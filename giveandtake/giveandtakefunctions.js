@@ -280,7 +280,7 @@ async function addSpecialKillBadges(game, item, userId) {
         }
     });
 
-    if (lastKill && lastKill.user_id !== userId && !(await userHasBadge(game, userId, 20))) {
+    if (lastKill && lastKill.user_id === userId && !(await userHasBadge(game, userId, 20))) {
         //Two to Tango
         await addBadge(game, userId, 20);
     }
