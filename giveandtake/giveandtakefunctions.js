@@ -4,6 +4,10 @@ const { EmbedBuilder } = require('discord.js');
 const { client } = require('../client');
 const fs = require('node:fs');
 
+//TODO: add game settings:
+//Add ability to halve point totals when a certain % of items have been eliminated
+//Add setting to change number items in final
+
 const reactionEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟",
     "❤️", "🧡", "💛", "💚", "💙", "💜", "🤎", "🖤", "🤍", "💗"];
 

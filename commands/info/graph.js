@@ -125,7 +125,7 @@ module.exports = {
             interaction.reply({ embeds: [graphEmbed] });
         }
         else {
-            interaction.reply("There is not active game in this channel.");
+            interaction.reply({ content: "There is currently no active game in this channel." });
         }
     },
 };
