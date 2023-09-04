@@ -2,24 +2,24 @@
 const Sequelize = require('sequelize');
 
 const sequelize = new Sequelize({
-	dialect: 'sqlite',
-	logging: false,
-	// SQLite only
-	storage: 'db/database.db',
+    dialect: 'sqlite',
+    logging: false,
+    // SQLite only
+    storage: 'db/database.db',
 });
 
 const Games = sequelize.define('games', {
-	id: {
-		type: Sequelize.INTEGER,
-		unique: true,
+    id: {
+        type: Sequelize.INTEGER,
+        unique: true,
         autoIncrement: true,
         primaryKey: true
-	},
-	guild_id: Sequelize.STRING,
-	channel_id: Sequelize.STRING,
-	theme_name: Sequelize.TEXT,
-	start_user: Sequelize.STRING,
-	status: Sequelize.STRING, //SWAPPING or VOTING
+    },
+    guild_id: Sequelize.STRING,
+    channel_id: Sequelize.STRING,
+    theme_name: Sequelize.TEXT,
+    start_user: Sequelize.STRING,
+    status: Sequelize.STRING, //SWAPPING or VOTING
     turns: Sequelize.INTEGER, //The number of turns in the game
     active: Sequelize.BOOLEAN,
     voting_message: Sequelize.STRING,
@@ -27,47 +27,47 @@ const Games = sequelize.define('games', {
 });
 
 const GameItems = sequelize.define('game_items', {
-	game_id: {
-		type: Sequelize.INTEGER,
+    game_id: {
+        type: Sequelize.INTEGER,
         references: {
             model: Games,
             key: 'id'
         }
-	},
-	label: Sequelize.STRING, //AKA id
-	name: Sequelize.STRING,
-	color: Sequelize.STRING,
-	emoji: Sequelize.STRING,
-	points: Sequelize.INTEGER,
+    },
+    label: Sequelize.STRING, //AKA id
+    name: Sequelize.STRING,
+    color: Sequelize.STRING,
+    emoji: Sequelize.STRING,
+    points: Sequelize.INTEGER,
 });
 
 const GameHistory = sequelize.define('game_history', {
-	game_id: {
-		type: Sequelize.INTEGER,
+    game_id: {
+        type: Sequelize.INTEGER,
         references: {
             model: Games,
             key: 'id'
         }
-	},
-	item_id: Sequelize.INTEGER,
-	turn_number: Sequelize.INTEGER,
-	points: Sequelize.INTEGER,
+    },
+    item_id: Sequelize.INTEGER,
+    turn_number: Sequelize.INTEGER,
+    points: Sequelize.INTEGER,
     user_id: Sequelize.STRING
 });
 
 const ItemInteractions = sequelize.define('item_interactions', {
-	game_id: {
-		type: Sequelize.INTEGER,
+    game_id: {
+        type: Sequelize.INTEGER,
         references: {
             model: Games,
             key: 'id'
         }
-	},
+    },
     guild_id: Sequelize.STRING,
     user_id: Sequelize.STRING,
     type: Sequelize.STRING, //Kill, Save or Assist
     theme_name: Sequelize.TEXT,
-    item_id: Sequelize.INTEGER 
+    item_id: Sequelize.INTEGER
 });
 
 const Badges = sequelize.define('badges', {
@@ -80,22 +80,22 @@ const Badges = sequelize.define('badges', {
 const UserBadges = sequelize.define('user_badges', {
     guild_id: Sequelize.STRING,
     user_id: Sequelize.STRING,
-    badge_id:  {
-		type: Sequelize.INTEGER,
+    badge_id: {
+        type: Sequelize.INTEGER,
         references: {
             model: Badges,
             key: 'id'
         }
-	},
+    },
 });
 
 const Themes = sequelize.define('themes', {
     id: {
-		type: Sequelize.INTEGER,
-		unique: true,
+        type: Sequelize.INTEGER,
+        unique: true,
         autoIncrement: true,
         primaryKey: true
-	},
+    },
     guild_id: Sequelize.STRING,
     name: Sequelize.TEXT,
     created_user: Sequelize.STRING,
@@ -105,19 +105,19 @@ const Themes = sequelize.define('themes', {
         allowNull: true
     }
 },
-{
-    timestamps: true,
-    paranoid: true
-});
+    {
+        timestamps: true,
+        paranoid: true
+    });
 
 const ThemeItems = sequelize.define('theme_items', {
-	theme_id: {
-		type: Sequelize.INTEGER,
+    theme_id: {
+        type: Sequelize.INTEGER,
         references: {
             model: Themes,
             key: 'id'
         }
-	}, 
+    },
     label: Sequelize.STRING, //AKA id
     name: Sequelize.STRING,
     color: Sequelize.STRING,
@@ -125,19 +125,19 @@ const ThemeItems = sequelize.define('theme_items', {
 });
 
 const Users = sequelize.define('users', {
-	guild_id: Sequelize.STRING,
+    guild_id: Sequelize.STRING,
     user_id: Sequelize.STRING,
-    badge_id:  {
-		type: Sequelize.INTEGER,
+    badge_id: {
+        type: Sequelize.INTEGER,
         references: {
             model: Badges,
             key: 'id'
         }
-	},
+    },
 });
 
 const ServerAdmins = sequelize.define('server_admins', {
-	guild_id: Sequelize.STRING,
+    guild_id: Sequelize.STRING,
     user_id: Sequelize.STRING,
     added_user: Sequelize.STRING,
 });
@@ -146,6 +146,11 @@ const GlobalAdmins = sequelize.define('global_admins', {
     user_id: Sequelize.STRING,
     added_user: Sequelize.STRING,
 });
+
+//TODO: https://sequelize.org/docs/v6/advanced-association-concepts/eager-loading/
+
+// UserBadges.belongsTo(Users, { foreignKey: 'user_id' });
+UserBadges.hasOne(Badges, { foreignKey: 'id' });
 
 exports.sequelize = sequelize;
 exports.Games = Games;

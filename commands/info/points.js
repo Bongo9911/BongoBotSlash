@@ -25,7 +25,7 @@ module.exports = {
                 }
             });
 
-            let columns = Math.ceil(items.length / 20);
+            let columns = Math.min(Math.ceil(items.length / 20), 3);
             let perColumn = Math.ceil(items.length / columns);
 
             const pointsEmbed = new EmbedBuilder()
