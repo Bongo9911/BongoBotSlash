@@ -150,7 +150,7 @@ const GlobalAdmins = sequelize.define('global_admins', {
 //TODO: https://sequelize.org/docs/v6/advanced-association-concepts/eager-loading/
 
 // UserBadges.belongsTo(Users, { foreignKey: 'user_id' });
-UserBadges.hasOne(Badges, { foreignKey: 'id' });
+UserBadges.hasOne(Badges, { sourceKey: "badge_id", foreignKey: 'id' });
 
 exports.sequelize = sequelize;
 exports.Games = Games;
