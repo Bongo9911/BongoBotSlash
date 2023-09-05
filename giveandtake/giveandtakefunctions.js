@@ -99,8 +99,8 @@ async function getUserNextMoveTime(gameId, userId) {
     });
 
     if (lastUserTurn) {
-        return Date.parse(lastUserTurn.createdAt) + 900000;
-        // return Date.parse(lastUserTurn.createdAt) + 3600000;
+        // return Date.parse(lastUserTurn.createdAt) + 900000;
+        return Date.parse(lastUserTurn.createdAt) + 3600000;
     }
     else {
         return new Date().getTime();

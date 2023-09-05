@@ -36,6 +36,7 @@ module.exports = {
         .setName('graph')
         .setDescription('Creates a graph with all the point swaps from the active game'),
     async execute(interaction) {
+        await interaction.deferReply();
 
         const activeGame = await Games.findOne({
             where: {
@@ -122,10 +123,10 @@ module.exports = {
                 .setTimestamp()
                 .setFooter({ text: '/graph', iconURL: 'https://i.imgur.com/kk9lhk3.png' });
 
-            interaction.reply({ embeds: [graphEmbed] });
+            interaction.followUp({ embeds: [graphEmbed] });
         }
         else {
-            interaction.reply({ content: "There is currently no active game in this channel." });
+            interaction.followUp({ content: "There is currently no active game in this channel." });
         }
     },
 };
