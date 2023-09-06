@@ -78,7 +78,7 @@ module.exports = {
                 }
             }
 
-            let skipNum = Math.round(fullData[0].length / 100);
+            let skipNum = Math.round(fullData[0].length / 200);
 
             for(let i = 0; i < fullData.length; ++i) {
                 fullData[i] = fullData[i].filter((val, idx) => idx % skipNum === 0);
