@@ -11,7 +11,7 @@ const fs = require('node:fs');
 const reactionEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟",
     "❤️", "🧡", "💛", "💚", "💙", "💜", "🤎", "🖤", "🤍", "💗"];
 
-const cooldownEnabled = true;
+const cooldownEnabled = false;
 
 async function makeMove(guildId, channelId, userId, giveName, takeName) {
     const game = await Games.findOne({
@@ -53,13 +53,16 @@ async function makeMove(guildId, channelId, userId, giveName, takeName) {
                 await addHistoryRecord(game, giveItem, userId);
                 await addHistoryRecord(game, takeItem, userId);
 
+                //TODO: uncomment
+                // await addPointSwapCountBadges(game, userId);
+
                 await checkGameStatus(game);
 
                 const pointsEmbed = await buildPointsEmbed(game, takeItem);
 
                 return { embed: pointsEmbed };
             }
-            else if(giveItem.id === takeItem.id) {
+            else if (giveItem.id === takeItem.id) {
                 return { message: "Cannot give to and take from the same item" };
             }
             else {
@@ -345,6 +348,32 @@ async function addSpecialAssistBadges(game, item, userId) {
     if (userGameAssistCount === 3 && !(await userHasBadge(game, userId, 19))) {
         //Third Time's The Charm
         await addBadge(game, userId, 19);
+    }
+}
+
+async function addPointSwapCountBadges(game, userId) {
+    const userPointSwapCount = (await GameHistory.count({
+        where: {
+            user_id: userId
+        },
+        include: {
+            model: Games,
+            where: {
+                guild_id: game.guild_id
+            }
+        }
+    })) / 2;
+
+    if (userPointSwapCount === 1) {
+        //Baby's First Swap 👶
+    } else if (userPointSwapCount === 10) {
+        //👦
+    } else if (userPointSwapCount === 100) {
+        //👩
+    } else if (userPointSwapCount === 1_000) {
+        //👴
+    } else if (userPointSwapCount === 10_000) {
+        //🦴
     }
 }
 

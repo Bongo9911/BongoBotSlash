@@ -138,5 +138,40 @@
         "description": "Get 2 kills in a row",
         "emoji": "💃",
         "image_url": "https://em-content.zobj.net/source/microsoft-teams/363/woman-dancing_1f483.png"
+    },
+    {
+        "id": 21,
+        "name": "Baby's First Swap",
+        "description": "Make your first point swap",
+        "emoji": "👶",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/363/baby_1f476.png"
+    },
+    {
+        "id": 22,
+        "name": "Atta Boy",
+        "description": "Make 10 point swaps",
+        "emoji": "👦",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/363/boy_1f466.png"
+    },
+    {
+        "id": 23,
+        "name": "Swapping Queen",
+        "description": "Make 100 point swaps",
+        "emoji": "👩",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/363/woman_1f469.png"
+    },
+    {
+        "id": 24,
+        "name": "Good Old Swapper",
+        "description": "Make 1,000 point swaps",
+        "emoji": "👴",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/363/woman_1f469.png"
+    },
+    {
+        "id": 25,
+        "name": "A Bone To Pick",
+        "description": "Make 10,000 point swaps",
+        "emoji": "🦴",
+        "image_url": "https://em-content.zobj.net/source/microsoft-teams/363/bone_1f9b4.png"
     }
 ]
