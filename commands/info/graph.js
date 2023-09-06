@@ -78,6 +78,12 @@ module.exports = {
                 }
             }
 
+            let skipNum = Math.round(fullData[0].length / 100);
+
+            for(let i = 0; i < fullData.length; ++i) {
+                fullData[i] = fullData[i].filter((val, idx) => idx % skipNum === 0);
+            }
+
             let datasets = [];
 
             for (let i = 0; i < items.length; ++i) {
@@ -99,7 +105,7 @@ module.exports = {
             chart.setConfig({
                 type: "line",
                 data: {
-                    labels: [...Array(fullData[0].length).fill().map((_, idx) => idx)],
+                    labels: [...Array(fullData[0].length).fill().map((_, idx) => idx * skipNum)],
                     datasets: datasets
                 },
                 options: {
