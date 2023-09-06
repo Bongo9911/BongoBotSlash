@@ -33,7 +33,7 @@ async function makeMove(guildId, channelId, userId, giveName, takeName) {
         const takeItem = await getItem(game.id, takeName);
 
         if (giveItem && takeItem) {
-            if (giveItem.points > 0 && takeItem.points > 0 && giveItem.id !== takeItem) {
+            if (giveItem.points > 0 && takeItem.points > 0 && giveItem.id !== takeItem.id) {
                 //Increase the number of turns taken in the active game
                 await game.increment('turns');
                 await game.reload();
