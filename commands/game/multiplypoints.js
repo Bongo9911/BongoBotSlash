@@ -32,7 +32,7 @@ module.exports = {
             });
 
             items.forEach(item => {
-                item.points *= multiplier;
+                item.points = Math.round(item.points * multiplier);
                 item.save();
             });
             interaction.followUp({ content: "Successfully multiplied points" });
