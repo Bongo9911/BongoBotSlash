@@ -72,7 +72,7 @@ module.exports = {
 
                 for (let h = 0; h < history.length; h += skipNum) {
                     while (fullData[i].length !== Math.floor(history[h].turn_number / skipNum)) {
-                        fullData[i].push(fullData[i][fullData[i].length - 1]);
+                        fullData[i].push(history[h - 1].points);
                     }
                     fullData[i].push(history[h].points);
                 }
