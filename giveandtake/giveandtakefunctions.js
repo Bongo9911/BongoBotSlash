@@ -11,7 +11,7 @@ const fs = require('node:fs');
 const reactionEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟",
     "❤️", "🧡", "💛", "💚", "💙", "💜", "🤎", "🖤", "🤍", "💗"];
 
-const cooldownEnabled = false;
+const cooldownEnabled = true;
 
 async function makeMove(guildId, channelId, userId, giveName, takeName) {
     const game = await Games.findOne({
@@ -106,7 +106,8 @@ async function getUserNextMoveTime(gameId, userId) {
 
     if (lastUserTurn) {
         // return Date.parse(lastUserTurn.createdAt) + 900000;
-        return Date.parse(lastUserTurn.createdAt) + 3600000;
+        // return Date.parse(lastUserTurn.createdAt) + 3600000;
+        return Date.parse(lastUserTurn.createdAt) + 1800000;
     }
     else {
         return new Date().getTime();

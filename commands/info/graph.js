@@ -57,8 +57,6 @@ module.exports = {
 
             let skipNum = Math.max(Math.round((activeGame.turns + 1) / 200), 1);
 
-            console.log("building history");
-
             for (let i = 0; i < items.length; ++i) {
                 const history = await GameHistory.findAll({
                     where: {
@@ -82,12 +80,6 @@ module.exports = {
                 }
             }
 
-            // for(let i = 0; i < fullData.length; ++i) {
-            //     fullData[i] = fullData[i].filter((val, idx) => idx % skipNum === 0);
-            // }
-
-            console.log("Full data filtered");
-
             let datasets = [];
 
             for (let i = 0; i < items.length; ++i) {
@@ -104,8 +96,6 @@ module.exports = {
                         + ',' + Math.round(colors[i % colors.length][2] / (1 + Math.floor(i / colors.length))) + ', 1)' //0.2
                 })
             }
-
-            console.log("datasets built");
 
             const chart = new QuickChart();
             chart.setConfig({
