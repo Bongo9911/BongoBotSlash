@@ -55,7 +55,7 @@ module.exports = {
 
             let fullData = [];
 
-            let skipNum = Math.max(Math.round((activeGame.turns + 1) / 3), 1);
+            let skipNum = Math.max(Math.round((activeGame.turns + 1) / 100), 1);
 
             for (let i = 0; i < items.length; ++i) {
                 const history = await GameHistory.findAll({
@@ -69,13 +69,13 @@ module.exports = {
                 fullData[i] = [];
 
                 for (let h = 0; h < history.length; h += skipNum) {
-                    while (fullData[i].length !== history[h].turn_number / skipNum) {
+                    while (fullData[i].length !== Math.floor(history[h].turn_number / skipNum)) {
                         fullData[i].push(fullData[i][fullData[i].length - 1]);
                     }
                     fullData[i].push(history[h].points);
                 }
 
-                while (fullData[i].length !== (activeGame.turns + 1) / skipNum) {
+                while (fullData[i].length !== Math.floor((activeGame.turns + 1) / skipNum)) {
                     fullData[i].push(fullData[i][fullData[i].length - 1]);
                 }
             }
