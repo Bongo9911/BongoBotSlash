@@ -55,7 +55,9 @@ module.exports = {
 
             let fullData = [];
 
-            let skipNum = Math.max(Math.round((activeGame.turns + 1) / 100), 1);
+            let skipNum = Math.max(Math.round((activeGame.turns + 1) / 200), 1);
+
+            console.log("building history");
 
             for (let i = 0; i < items.length; ++i) {
                 const history = await GameHistory.findAll({
