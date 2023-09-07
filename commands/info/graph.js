@@ -78,7 +78,7 @@ module.exports = {
                 }
 
                 while (fullData[i].length !== Math.floor((activeGame.turns + 1) / skipNum)) {
-                    fullData[i].push(fullData[i][fullData[i].length - 1]);
+                    fullData[i].push(history[history.length - 1].points);
                 }
             }
 
