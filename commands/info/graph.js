@@ -55,6 +55,8 @@ module.exports = {
 
             let fullData = [];
 
+            let skipNum = Math.max(Math.round((activeGame.turns + 1) / 3), 1);
+
             for (let i = 0; i < items.length; ++i) {
                 const history = await GameHistory.findAll({
                     where: {
@@ -66,23 +68,23 @@ module.exports = {
 
                 fullData[i] = [];
 
-                for (let h = 0; h < history.length; ++h) {
-                    while (fullData[i].length !== history[h].turn_number) {
+                for (let h = 0; h < history.length; h += skipNum) {
+                    while (fullData[i].length !== history[h].turn_number / skipNum) {
                         fullData[i].push(fullData[i][fullData[i].length - 1]);
                     }
                     fullData[i].push(history[h].points);
                 }
 
-                while (fullData[i].length !== activeGame.turns + 1) {
+                while (fullData[i].length !== (activeGame.turns + 1) / skipNum) {
                     fullData[i].push(fullData[i][fullData[i].length - 1]);
                 }
             }
 
-            let skipNum = Math.round(fullData[0].length / 200);
+            // for(let i = 0; i < fullData.length; ++i) {
+            //     fullData[i] = fullData[i].filter((val, idx) => idx % skipNum === 0);
+            // }
 
-            for(let i = 0; i < fullData.length; ++i) {
-                fullData[i] = fullData[i].filter((val, idx) => idx % skipNum === 0);
-            }
+            console.log("Full data filtered");
 
             let datasets = [];
 
@@ -100,6 +102,8 @@ module.exports = {
                         + ',' + Math.round(colors[i % colors.length][2] / (1 + Math.floor(i / colors.length))) + ', 1)' //0.2
                 })
             }
+
+            console.log("datasets built");
 
             const chart = new QuickChart();
             chart.setConfig({
