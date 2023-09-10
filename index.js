@@ -1,6 +1,6 @@
 require('dotenv').config({ debug: true });
 
-const { Collection, Events } = require('discord.js');
+const { Collection, Events, ActivityType } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 const { sequelize } = require('./databaseModels');
@@ -68,6 +68,8 @@ client.on(Events.InteractionCreate, async interaction => {
 client.once(Events.ClientReady, async c => {
 	await sequelize.sync();
 	console.log(`Ready! Logged in as ${c.user.tag}`);
+
+	client.user.setActivity('Give & Take', { type: ActivityType.Playing });
 
 	await createBadges();
 });

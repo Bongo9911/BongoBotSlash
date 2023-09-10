@@ -75,6 +75,9 @@ module.exports = {
                     });
                 }
 
+                theme.enabled = false;
+                await theme.save();
+
                 interaction.followUp({ content: "Game started with theme: '" + themeName + "'" })
             }
             else {

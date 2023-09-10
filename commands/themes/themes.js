@@ -9,7 +9,8 @@ module.exports = {
         let themes = await Themes.findAll({
             where: {
                 guild_id: interaction.guildId,
-                enabled: true
+                enabled: true,
+                suggestion: false
             }
         });
 

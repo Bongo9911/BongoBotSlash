@@ -1,6 +1,6 @@
-const { GameItems, ItemInteractions, GameHistory, Games, UserBadges, sequelize, Badges } = require('../databaseModels.js');
+const { GameItems, ItemInteractions, GameHistory, Games, UserBadges, sequelize, Badges, Themes } = require('../databaseModels.js');
 const { Op } = require("sequelize");
-const { EmbedBuilder } = require('discord.js');
+const { Channel, EmbedBuilder } = require('discord.js');
 const { client } = require('../client');
 const fs = require('node:fs');
 
@@ -11,7 +11,13 @@ const fs = require('node:fs');
 const reactionEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟",
     "❤️", "🧡", "💛", "💚", "💙", "💜", "🤎", "🖤", "🤍", "💗"];
 
-const cooldownEnabled = true;
+//TODO: add settings to DB
+const cooldownEnabled = false;
+const cooldownMinutes = 60;
+const giveAndTakeRoleID = "983347003176132608";
+const itemsForFinalVote = 2;
+const themeVotingEnabled = true;
+const themesPerVote = 3;
 
 async function makeMove(guildId, channelId, userId, giveName, takeName) {
     const game = await Games.findOne({
@@ -53,8 +59,7 @@ async function makeMove(guildId, channelId, userId, giveName, takeName) {
                 await addHistoryRecord(game, giveItem, userId);
                 await addHistoryRecord(game, takeItem, userId);
 
-                //TODO: uncomment
-                // await addPointSwapCountBadges(game, userId);
+                await addPointSwapCountBadges(game, userId);
 
                 await checkGameStatus(game);
 
@@ -107,7 +112,7 @@ async function getUserNextMoveTime(gameId, userId) {
     if (lastUserTurn) {
         // return Date.parse(lastUserTurn.createdAt) + 900000;
         // return Date.parse(lastUserTurn.createdAt) + 3600000;
-        return Date.parse(lastUserTurn.createdAt) + 1800000;
+        return Date.parse(lastUserTurn.createdAt) + (cooldownMinutes * 60 * 1000);
     }
     else {
         return new Date().getTime();
@@ -367,14 +372,19 @@ async function addPointSwapCountBadges(game, userId) {
 
     if (userPointSwapCount === 1) {
         //Baby's First Swap 👶
+        await addBadge(game, userId, 21);
     } else if (userPointSwapCount === 10) {
         //👦
+        await addBadge(game, userId, 22);
     } else if (userPointSwapCount === 100) {
         //👩
+        await addBadge(game, userId, 23);
     } else if (userPointSwapCount === 1_000) {
         //👴
+        await addBadge(game, userId, 24);
     } else if (userPointSwapCount === 10_000) {
         //🦴
+        await addBadge(game, userId, 25);
     }
 }
 
@@ -442,9 +452,11 @@ async function checkGameStatus(game) {
     });
 
     //2 items left, end game
-    if (items.length === 2) {
+    if (items.length === itemsForFinalVote) {
         const endTime = new Date();
-        endTime.setHours(endTime.getHours() + 4);
+        endTime.setHours(endTime.getHours() + 12);
+
+        //TODO: ping G&T role
 
         let description = "**Voting ends** <t:" + Math.ceil(endTime.getTime() / 1000) + ":R>\n";
 
@@ -456,13 +468,18 @@ async function checkGameStatus(game) {
 
         const pollEmbed = new EmbedBuilder()
             .setColor('#0099ff')
-            .setTitle("📊 FINAL 2 - React to vote")
+            .setTitle("📊 FINAL " + itemsForFinalVote + " - React to vote")
             .setDescription(description);
 
         const channel = client.channels.cache.get(game.channel_id);
 
         if (channel) {
-            const message = await channel.send({ embeds: [pollEmbed] });
+            let content = "";
+            if (giveAndTakeRoleID.length) {
+                content = "<@&" + giveAndTakeRoleID + ">"
+            }
+
+            const message = await channel.send({ content: content, embeds: [pollEmbed] });
 
             //Switch to the voting stage
             game.status = "VOTING";
@@ -584,8 +601,32 @@ async function checkVoteStatus() {
 
             game.active = false;
             await game.save();
+
+            await startThemeVote(channel);
         }
     });
+}
+
+/** 
+* Starts a vote for the next game theme
+* @param {Channel} channel
+*/
+async function startThemeVote(channel) {
+    if(!themeVotingEnabled) {
+        return;
+    }
+
+    const chosenThemes = Themes.findAll({
+        where: {
+            guild_id: channel.guildId,
+            enabled: true,
+            suggestion: false
+        },
+        limit: themesPerVote,
+        order: sequelize.random()
+    });
+
+    //TODO: send message with themes
 }
 
 async function createBadges() {

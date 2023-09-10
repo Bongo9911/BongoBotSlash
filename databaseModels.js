@@ -24,6 +24,10 @@ const Games = sequelize.define('games', {
     active: Sequelize.BOOLEAN,
     voting_message: Sequelize.STRING,
     end_time: Sequelize.DATE
+},
+{
+    paranoid: true,
+    timestamps: true
 });
 
 const GameItems = sequelize.define('game_items', {
@@ -39,6 +43,10 @@ const GameItems = sequelize.define('game_items', {
     color: Sequelize.STRING,
     emoji: Sequelize.STRING,
     points: Sequelize.INTEGER,
+},
+{
+    paranoid: true,
+    timestamps: true
 });
 
 const GameHistory = sequelize.define('game_history', {
@@ -53,6 +61,10 @@ const GameHistory = sequelize.define('game_history', {
     turn_number: Sequelize.INTEGER,
     points: Sequelize.INTEGER,
     user_id: Sequelize.STRING
+},
+{
+    paranoid: true,
+    timestamps: true
 });
 
 const ItemInteractions = sequelize.define('item_interactions', {
@@ -68,6 +80,10 @@ const ItemInteractions = sequelize.define('item_interactions', {
     type: Sequelize.STRING, //Kill, Save or Assist
     theme_name: Sequelize.TEXT,
     item_id: Sequelize.INTEGER
+},
+{
+    paranoid: true,
+    timestamps: true
 });
 
 const Badges = sequelize.define('badges', {
@@ -75,6 +91,10 @@ const Badges = sequelize.define('badges', {
     description: Sequelize.STRING,
     emoji: Sequelize.STRING,
     image_url: Sequelize.TEXT
+},
+{
+    paranoid: true,
+    timestamps: true
 });
 
 const UserBadges = sequelize.define('user_badges', {
@@ -87,6 +107,10 @@ const UserBadges = sequelize.define('user_badges', {
             key: 'id'
         }
     },
+},
+{
+    paranoid: true,
+    timestamps: true
 });
 
 const Themes = sequelize.define('themes',
@@ -101,10 +125,7 @@ const Themes = sequelize.define('themes',
         name: Sequelize.TEXT,
         created_user: Sequelize.STRING,
         enabled: Sequelize.BOOLEAN,
-        deletedAt: {
-            type: Sequelize.DATE,
-            allowNull: true
-        }
+        suggestion: Sequelize.BOOLEAN
     },
     {
         timestamps: true,
@@ -124,6 +145,10 @@ const ThemeItems = sequelize.define('theme_items', {
     name: Sequelize.STRING,
     color: Sequelize.STRING,
     emoji: Sequelize.STRING
+},
+{
+    paranoid: true,
+    timestamps: true
 });
 
 const Users = sequelize.define('users', {
@@ -136,30 +161,72 @@ const Users = sequelize.define('users', {
             key: 'id'
         }
     },
+},
+{
+    paranoid: true,
+    timestamps: true
 });
 
 const ServerAdmins = sequelize.define('server_admins', {
     guild_id: Sequelize.STRING,
     user_id: Sequelize.STRING,
     added_user: Sequelize.STRING,
+},
+{
+    paranoid: true,
+    timestamps: true
 });
 
 const GlobalAdmins = sequelize.define('global_admins', {
     user_id: Sequelize.STRING,
     added_user: Sequelize.STRING,
+},
+{
+    paranoid: true,
+    timestamps: true
 });
 
-//TODO: https://sequelize.org/docs/v6/advanced-association-concepts/eager-loading/
+const ThemeVotes = sequelize.define('theme_votes', {
+    guild_id: Sequelize.STRING,
+    channel_id: Sequelize.STRING,
+    message_id: Sequelize.STRING,
+    end_time: Sequelize.DATE,
+    active: Sequelize.BOOLEAN
+},
+{
+    paranoid: true,
+    timestamps: true
+});
+
+const ThemeVoteThemes = sequelize.define('theme_vote_themes', {
+    theme_vote_id: {
+        type: Sequelize.INTEGER,
+        references: {
+            model: ThemeVotes,
+            key: 'id'
+        }
+    },
+    theme_id: {
+        type: Sequelize.INTEGER,
+        references: {
+            model: Themes,
+            key: 'id'
+        }
+    },
+    sequence_number: Sequelize.INTEGER
+},
+{
+    paranoid: true,
+    timestamps: true
+});
 
 GameItems.belongsTo(Games, { foreignKey: 'game_id' });
 GameHistory.belongsTo(Games, { foreignKey: 'game_id' });
 
 ItemInteractions.belongsTo(Games, { foreignKey: 'game_id' });
-ItemInteractions.belongsTo(Users, { foreignKey: 'user_id' });
 ItemInteractions.belongsTo(GameItems, { foreignKey: 'item_id' });
 
-UserBadges.belongsTo(Users, { sourceKey: "user_id", foreignKey: 'user_id' });
-UserBadges.hasOne(Badges, { sourceKey: "badge_id", foreignKey: 'id' });
+UserBadges.belongsTo(Badges, { sourceKey: "badge_id" });
 
 ThemeItems.belongsTo(Themes, { foreignKey: "theme_id" });
 
@@ -175,3 +242,5 @@ exports.Users = Users;
 exports.ServerAdmins = ServerAdmins;
 exports.GlobalAdmins = GlobalAdmins;
 exports.Badges = Badges;
+exports.ThemeVotes = ThemeVotes;
+exports.ThemeVoteThemes = ThemeVoteThemes;

@@ -38,7 +38,7 @@ module.exports = {
                 });
                 if(user) {
                     user.badge_id = badge.id;
-                    user.save();
+                    await user.save();
                 }
                 else {
                     await Users.create({

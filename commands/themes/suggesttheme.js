@@ -3,14 +3,13 @@ const { Themes, ThemeItems } = require('../../databaseModels.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('createtheme')
-        .setDescription('Creates a new Give & Take theme for the server')
+        .setName('suggesttheme')
+        .setDescription('Suggest a new Give & Take theme for the server')
         .addStringOption(option =>
             option
                 .setName('name')
                 .setDescription('The name of the theme')
-                .setRequired(true))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
+                .setRequired(true)),
     async execute(interaction) {
 
         let themeName = interaction.options.getString('name').trim();
@@ -20,7 +19,7 @@ module.exports = {
                 guild_id: interaction.guildId,
                 name: themeName
             }
-        })
+        });
 
         if (!matchingTheme) {
             let themeInfo = {};
@@ -170,7 +169,7 @@ async function finishCreateTheme(message, themeInfo) {
         name: themeInfo.name,
         created_user: message.author.id,
         enabled: true,
-        suggestion: false
+        suggestion: true
     });
 
     for (let i = 0; i < themeInfo.items.length; ++i) {
@@ -183,5 +182,5 @@ async function finishCreateTheme(message, themeInfo) {
         })
     }
 
-    message.reply("Theme **" + themeInfo.name + "** successfully created.");
+    message.reply("Theme **" + themeInfo.name + "** successfully suggested.");
 }

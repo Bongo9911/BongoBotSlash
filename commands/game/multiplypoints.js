@@ -31,9 +31,9 @@ module.exports = {
                 }
             });
 
-            items.forEach(item => {
+            items.forEach(async (item) => {
                 item.points = Math.round(item.points * multiplier);
-                item.save();
+                await item.save();
             });
             interaction.followUp({ content: "Successfully multiplied points" });
         }
