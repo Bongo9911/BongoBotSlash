@@ -454,9 +454,7 @@ async function checkGameStatus(game) {
     //2 items left, end game
     if (items.length === itemsForFinalVote) {
         const endTime = new Date();
-        endTime.setMinutes(endTime.getMinutes() + 1);
-        //TODO: uncomment
-        // endTime.setHours(endTime.getHours() + 12);
+        endTime.setHours(endTime.getHours() + 12);
 
         //TODO: ping G&T role
 
@@ -631,9 +629,7 @@ async function startThemeVote(channel) {
     if (chosenThemes.length) {
 
         const endTime = new Date();
-        endTime.setMinutes(endTime.getMinutes() + 1);
-        //TODO: uncomment
-        // endTime.setHours(endTime.getHours() + 12);
+        endTime.setHours(endTime.getHours() + 12);
 
         let description = "";
 
@@ -726,7 +722,7 @@ async function CheckThemeVoteStatus() {
                 }
             });
 
-            const startingPoints = Math.ceil(100 / themeItemCount);
+            const startingPoints = Math.ceil(150 / themeItemCount);
 
             const game = await StartGame(theme, startingPoints, themeVote.guild_id, themeVote.channel_id, client.user.id);
 
