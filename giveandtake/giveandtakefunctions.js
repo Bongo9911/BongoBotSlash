@@ -1,4 +1,4 @@
-const { GameItems, ItemInteractions, GameHistory, Games, UserBadges, sequelize, Badges, Themes } = require('../databaseModels.js');
+const { GameItems, ItemInteractions, GameHistory, Games, UserBadges, sequelize, Badges, Themes, ThemeVotes, ThemeVoteThemes, ThemeItems } = require('../databaseModels.js');
 const { Op } = require("sequelize");
 const { Channel, EmbedBuilder } = require('discord.js');
 const { client } = require('../client');
@@ -454,7 +454,9 @@ async function checkGameStatus(game) {
     //2 items left, end game
     if (items.length === itemsForFinalVote) {
         const endTime = new Date();
-        endTime.setHours(endTime.getHours() + 12);
+        endTime.setMinutes(endTime.getMinutes() + 1);
+        //TODO: uncomment
+        // endTime.setHours(endTime.getHours() + 12);
 
         //TODO: ping G&T role
 
@@ -544,7 +546,7 @@ async function buildPointsEmbed(game, takeItem) {
 }
 
 
-async function checkVoteStatus() {
+async function checkGameVoteStatus() {
     const finishedGames = await Games.findAll({
         where: {
             active: true,
@@ -612,11 +614,11 @@ async function checkVoteStatus() {
 * @param {Channel} channel
 */
 async function startThemeVote(channel) {
-    if(!themeVotingEnabled) {
+    if (!themeVotingEnabled) {
         return;
     }
 
-    const chosenThemes = Themes.findAll({
+    const chosenThemes = await Themes.findAll({
         where: {
             guild_id: channel.guildId,
             enabled: true,
@@ -626,7 +628,162 @@ async function startThemeVote(channel) {
         order: sequelize.random()
     });
 
-    //TODO: send message with themes
+    if (chosenThemes.length) {
+
+        const endTime = new Date();
+        endTime.setMinutes(endTime.getMinutes() + 1);
+        //TODO: uncomment
+        // endTime.setHours(endTime.getHours() + 12);
+
+        let description = "";
+
+        for (let i = 0; i < chosenThemes.length; ++i) {
+            description += reactionEmojis[i] + " - " + chosenThemes[i].name + ((i === (chosenThemes.length - 1)) ? "" : "\n");
+        }
+
+        const pollEmbed = new EmbedBuilder()
+            .setColor('#0099ff')
+            .setTitle("📊 React to vote for the next theme!")
+            .setDescription(description);
+
+        let content = "**Voting ends** <t:" + Math.ceil(endTime.getTime() / 1000) + ":R>";
+        if (giveAndTakeRoleID.length) {
+            content += "\n<@&" + giveAndTakeRoleID + ">"
+        }
+
+        const message = await channel.send({ content: content, embeds: [pollEmbed] });
+
+        for (let i = 0; i < chosenThemes.length; ++i) {
+            await message.react(reactionEmojis[i]);
+        }
+
+        const themeVote = await ThemeVotes.create({
+            guild_id: channel.guildId,
+            channel_id: channel.id,
+            message_id: message.id,
+            end_time: endTime,
+            active: true
+        });
+
+        for (let i = 0; i < chosenThemes.length; ++i) {
+            await ThemeVoteThemes.create({
+                theme_vote_id: themeVote.id,
+                theme_id: chosenThemes[i].id,
+                sequence_number: i
+            });
+        }
+    }
+}
+
+async function CheckThemeVoteStatus() {
+    const themeVotes = await ThemeVotes.findAll({
+        where: {
+            active: true,
+            end_time: {
+                [Op.lt]: new Date()
+            }
+        }
+    });
+
+    themeVotes.forEach(async (themeVote) => {
+        const themes = await ThemeVoteThemes.findAll({
+            where: {
+                theme_vote_id: themeVote.id,
+            }
+        });
+
+        if (themes.length > 0) {
+            console.log(themeVote.channel_id)
+            const channel = client.channels.cache.get(themeVote.channel_id);
+            const voteMessage = await channel.messages.fetch(themeVote.message_id);
+
+            let reactionCount = [];
+
+            for (let i = 0; i < themes.length; ++i) {
+                reactionCount.push(voteMessage.reactions.cache.get(reactionEmojis[themes[i].sequence_number]).count - 1);
+            }
+
+            let maxReactionCount = Math.max(...reactionCount);
+
+            let winningTheme = themes.find((item, i) => reactionCount[i] === maxReactionCount);
+
+            const theme = await Themes.findOne({
+                where: {
+                    id: winningTheme.id
+                }
+            });
+
+            let message = "**" + theme.name + "** has been chosen as the next theme with " + maxReactionCount + " vote(s)!";
+
+            await channel.send(message);
+
+            themeVote.active = false;
+            await themeVote.save();
+
+            const themeItemCount = await ThemeItems.count({
+                where: {
+                    theme_id: theme.id
+                }
+            });
+
+            const startingPoints = Math.ceil(100 / themeItemCount);
+
+            const game = await StartGame(theme, startingPoints, themeVote.guild_id, themeVote.channel_id, client.user.id);
+
+            message = "Starting game with theme: **" + theme.name + "**"
+            if (giveAndTakeRoleID.length) {
+                message += "\n<@&" + giveAndTakeRoleID + ">"
+            }
+
+            await channel.send(message);
+
+            const pointsEmbed = await buildPointsEmbed(game, {id: -1});
+
+            channel.send({ embeds: [pointsEmbed] });
+        }
+    });
+}
+
+async function StartGame(theme, points, guildId, channelId, userId) {
+    const game = await Games.create({
+        guild_id: guildId,
+        channel_id: channelId,
+        theme_name: theme.name,
+        start_user: userId,
+        status: "SWAPPING",
+        turns: 0,
+        active: true
+    });
+
+    const items = await ThemeItems.findAll({
+        where: {
+            theme_id: theme.id
+        }
+    });
+
+    for (let i = 0; i < items.length; ++i) {
+        const item = await GameItems.create({
+            game_id: game.id,
+            label: items[i].label,
+            name: items[i].name,
+            color: items[i].color,
+            emoji: items[i].emoji,
+            points: points
+        });
+
+        await GameHistory.create({
+            game_id: game.id,
+            item_id: item.id,
+            turn_number: 0,
+            points: points,
+            user_id: null
+        });
+    }
+
+    theme.enabled = false;
+    await theme.save();
+
+    return game;
 }
 
 async function createBadges() {
@@ -658,5 +815,7 @@ async function createBadges() {
 }
 
 exports.makeMove = makeMove;
-exports.checkVoteStatus = checkVoteStatus;
+exports.checkGameVoteStatus = checkGameVoteStatus;
 exports.createBadges = createBadges;
+exports.CheckThemeVoteStatus = CheckThemeVoteStatus
+exports.StartGame = StartGame

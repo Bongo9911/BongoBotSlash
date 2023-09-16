@@ -4,7 +4,7 @@ const { Collection, Events, ActivityType } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 const { sequelize } = require('./databaseModels');
-const { makeMove, checkVoteStatus, createBadges } = require('./giveandtake/giveandtakefunctions');
+const { makeMove, checkGameVoteStatus, createBadges, startThemeVote, CheckThemeVoteStatus } = require('./giveandtake/giveandtakefunctions');
 const { client } = require('./client');
 
 client.commands = new Collection();
@@ -78,5 +78,6 @@ client.login(process.env.TOKEN);
 
 //Check every minute if there is any finished games
 setInterval(async function() {
-	await checkVoteStatus();
+	await checkGameVoteStatus();
+	await CheckThemeVoteStatus();
 }, 60 * 1000);

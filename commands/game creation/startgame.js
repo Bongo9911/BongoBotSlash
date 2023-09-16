@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { Themes, ThemeItems, Games, GameItems, GameHistory } = require('../../databaseModels.js');
+const { StartGame } = require('../../giveandtake/giveandtakefunctions.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -40,43 +41,7 @@ module.exports = {
             if (theme) {
                 const points = interaction.options.getInteger('points');
 
-                const game = await Games.create({
-                    guild_id: interaction.guildId,
-                    channel_id: interaction.channelId,
-                    theme_name: theme.name,
-                    start_user: interaction.user.id,
-                    status: "SWAPPING",
-                    turns: 0,
-                    active: true
-                });
-
-                const items = await ThemeItems.findAll({
-                    where: {
-                        theme_id: theme.id
-                    }
-                });
-
-                for(let i = 0; i < items.length; ++i) {
-                    const item = await GameItems.create({
-                        game_id: game.id,
-                        label: items[i].label,
-                        name: items[i].name,
-                        color: items[i].color,
-                        emoji: items[i].emoji,
-                        points: points
-                    });
-
-                    await GameHistory.create({
-                        game_id: game.id,
-                        item_id: item.id,
-                        turn_number: 0,
-                        points: points,
-                        user_id: null
-                    });
-                }
-
-                theme.enabled = false;
-                await theme.save();
+                await StartGame(theme, points, interaction.guildId, interaction.channelId, interaction.user.id);
 
                 interaction.followUp({ content: "Game started with theme: '" + themeName + "'" })
             }
