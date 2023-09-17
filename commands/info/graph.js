@@ -75,7 +75,7 @@ module.exports = {
                         historyIndex++;
                     }
 
-                    if (history[historyIndex].turn_number === h || historyIndex === 0) {
+                    if (history[historyIndex].turn_number <= h || historyIndex === 0) {
                         fullData[i].push(history[historyIndex].points);
                     }
                     else {
