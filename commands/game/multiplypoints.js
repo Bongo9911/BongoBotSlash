@@ -35,10 +35,10 @@ module.exports = {
                 item.points = Math.round(item.points * multiplier);
                 await item.save();
             });
-            interaction.followUp({ content: "Successfully multiplied points" });
+            interaction.editReply({ content: "Successfully multiplied points" });
         }
         else {
-            interaction.followUp({ content: "Can't multiply points because there is no active game" });
+            interaction.editReply({ content: "Can't multiply points because there is no active game" });
         }
     },
 };

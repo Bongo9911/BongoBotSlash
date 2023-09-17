@@ -129,10 +129,10 @@ module.exports = {
                 .setTimestamp()
                 .setFooter({ text: '/graph', iconURL: 'https://i.imgur.com/kk9lhk3.png' });
 
-            interaction.followUp({ embeds: [graphEmbed] });
+            interaction.editReply({ embeds: [graphEmbed] });
         }
         else {
-            interaction.followUp({ content: "There is currently no active game in this channel." });
+            interaction.editReply({ content: "There is currently no active game in this channel." });
         }
     },
 };

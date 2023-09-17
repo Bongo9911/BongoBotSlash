@@ -12,6 +12,7 @@ module.exports = {
                 .setRequired(true))
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
     async execute(interaction) {
+        await interaction.deferReply();
 
         let themeName = interaction.options.getString('name').trim();
 
@@ -25,11 +26,10 @@ module.exports = {
         if (!matchingTheme) {
             let themeInfo = {};
             themeInfo.name = themeName;
-            await interaction.deferReply();
             getItems(interaction, themeInfo)
         }
         else {
-            await interaction.reply({ content: "Theme name already taken, please use a different one" });
+            await interaction.editReply({ content: "Theme name already taken, please use a different one" });
         }
     },
 };

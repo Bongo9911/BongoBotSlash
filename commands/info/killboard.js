@@ -6,6 +6,7 @@ module.exports = {
         .setName('killboard')
         .setDescription('Lists the players with the highest number of kills'),
     async execute(interaction) {
+        await interaction.deferReply();
 
         const totals = await ItemInteractions.findAll({
             attributes: [
@@ -33,10 +34,10 @@ module.exports = {
                 .setDescription(list)
                 .setTimestamp()
                 .setFooter({ text: '/killboard', iconURL: 'https://i.imgur.com/kk9lhk3.png' });
-            await interaction.reply({ embeds: [killsEmbed] });
+            await interaction.editReply({ embeds: [killsEmbed] });
         }
         else {
-            await interaction.reply({ content: "No kills have been performed yet in this server" });
+            await interaction.editReply({ content: "No kills have been performed yet in this server" });
         }
     },
 };

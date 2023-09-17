@@ -7,6 +7,8 @@ module.exports = {
         .setName('points')
         .setDescription('Lists the points for all items with more than 0 points in the active Give & Take game'),
     async execute(interaction) {
+        await interaction.deferReply();
+
         const game = await Games.findOne({
             where: {
                 guild_id: interaction.guildId,
@@ -54,10 +56,10 @@ module.exports = {
 
             pointsEmbed.addFields(fields);
 
-            interaction.reply({ embeds: [pointsEmbed] });
+            interaction.editReply({ embeds: [pointsEmbed] });
         }
         else {
-            interaction.reply({ content: "There is currently no active game in this channel." });
+            interaction.editReply({ content: "There is currently no active game in this channel." });
         }
     },
 };

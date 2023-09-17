@@ -55,12 +55,12 @@ module.exports = {
                         })
                         .catch(collected => {
                             console.error(collected);
-                            interaction.followUp('Request Timed Out.');
+                            interaction.editReply('Request Timed Out.');
                         });
                 });
         }
         else {
-            await interaction.followUp({ content: "Theme: " + themeName + " not found." });
+            await interaction.editReply({ content: "Theme: " + themeName + " not found." });
         }
     },
 };

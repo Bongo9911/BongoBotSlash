@@ -27,6 +27,7 @@ module.exports = {
                 .setRequired(true))
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction) {
+        await interaction.deferReply();
 
         if (interaction.user.id === "200313450319052801") {
             await Badges.create({
@@ -36,10 +37,10 @@ module.exports = {
                 image_url: interaction.options.getString('url'),
             })
 
-            interaction.reply({ content: "Created!" });
+            interaction.editReply({ content: "Created!" });
         }
         else {
-            interaction.reply({ content: "Badges may not be created by anyone other than Bongo" });
+            interaction.editReply({ content: "Badges may not be created by anyone other than Bongo" });
         }
     },
 };

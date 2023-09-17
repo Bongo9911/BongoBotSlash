@@ -6,6 +6,7 @@ module.exports = {
         .setName('saveboard')
         .setDescription('Lists the players with the highest number of saves'),
     async execute(interaction) {
+        await interaction.deferReply();
 
         const totals = await ItemInteractions.findAll({
             attributes: [
@@ -33,10 +34,10 @@ module.exports = {
                 .setDescription(list)
                 .setTimestamp()
                 .setFooter({ text: '/saveboard', iconURL: 'https://i.imgur.com/kk9lhk3.png' });
-            await interaction.reply({ embeds: [savesEmbed] });
+            await interaction.editReply({ embeds: [savesEmbed] });
         }
         else {
-            await interaction.reply({ content: "No saves have been performed yet in this server" });
+            await interaction.editReply({ content: "No saves have been performed yet in this server" });
         }
     },
 };

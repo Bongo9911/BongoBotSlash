@@ -6,6 +6,8 @@ module.exports = {
         .setName('badges')
         .setDescription('Lists all badges available to be obtained'),
     async execute(interaction) {
+        await interaction.deferReply();
+
         let badges = await Badges.findAll();
 
         badgeList = "";
@@ -20,7 +22,7 @@ module.exports = {
             .setDescription(badgeList)
             .setTimestamp()
             .setFooter({ text: '/badges', iconURL: 'https://i.imgur.com/kk9lhk3.png' });
-        await interaction.reply({ embeds: [badgesEmbed] });
+        await interaction.editReply({ embeds: [badgesEmbed] });
 
     },
 };

@@ -6,6 +6,8 @@ module.exports = {
         .setName('themes')
         .setDescription('Lists available themes for a server'),
     async execute(interaction) {
+        await interaction.deferReply();
+
         let themes = await Themes.findAll({
             where: {
                 guild_id: interaction.guildId,
@@ -32,10 +34,10 @@ module.exports = {
                 .setDescription(themeList)
                 .setTimestamp()
                 .setFooter({ text: '/themes', iconURL: 'https://i.imgur.com/kk9lhk3.png' });
-            await interaction.reply({ embeds: [themesEmbed] });
+            await interaction.editReply({ embeds: [themesEmbed] });
         }
         else {
-            await interaction.reply({ content: "No themes found." });
+            await interaction.editReply({ content: "No themes found." });
         }
 
     },

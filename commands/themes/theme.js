@@ -11,6 +11,7 @@ module.exports = {
                 .setDescription('The name of the theme')
                 .setRequired(true)),
     async execute(interaction) {
+        await interaction.deferReply();
 
         const themeName = interaction.options.getString('theme').trim();
 
@@ -39,10 +40,10 @@ module.exports = {
                 .setDescription(itemList)
                 .setTimestamp()
                 .setFooter({ text: '/theme', iconURL: 'https://i.imgur.com/kk9lhk3.png' });
-            await interaction.reply({ embeds: [themeEmbed] });
+            await interaction.editReply({ embeds: [themeEmbed] });
         }
         else {
-            await interaction.reply({ content: "Theme '" + themeName + "' not found" });
+            await interaction.editReply({ content: "Theme '" + themeName + "' not found" });
         }
 
     },

@@ -43,14 +43,14 @@ module.exports = {
 
                 await StartGame(theme, points, interaction.guildId, interaction.channelId, interaction.user.id);
 
-                interaction.followUp({ content: "Game started with theme: '" + themeName + "'" })
+                interaction.editReply({ content: "Game started with theme: '" + themeName + "'" })
             }
             else {
-                interaction.reply({ content: "Theme '" + themeName + "' not found or not available." })
+                interaction.editReply({ content: "Theme '" + themeName + "' not found or not available." })
             }
         }
         else {
-            interaction.reply({ content: "Cannot start a new game when a game is already running in this channel." })
+            interaction.editReply({ content: "Cannot start a new game when a game is already running in this channel." })
         }
     },
 };

@@ -11,6 +11,8 @@ module.exports = {
                 .setDescription('The user to see the stats of, defaults to the user running the command')
                 .setRequired(false)),
     async execute(interaction) {
+        await interaction.deferReply();
+
         let user = interaction.options.getUser('user');
         user = user ? user : interaction.user;
 
@@ -70,7 +72,7 @@ module.exports = {
             statsEmbed.setThumbnail(featuredBadge.image_url);
         }
 
-        interaction.reply({ embeds: [statsEmbed] });
+        interaction.editReply({ embeds: [statsEmbed] });
     },
 };
 

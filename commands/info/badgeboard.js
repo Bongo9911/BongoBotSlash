@@ -7,6 +7,7 @@ module.exports = {
         .setName('badgeboard')
         .setDescription('Lists the players with the highest number of badges'),
     async execute(interaction) {
+        await interaction.deferReply();
 
         const totals = await UserBadges.findAll({
             attributes: [
@@ -42,10 +43,10 @@ module.exports = {
                 .setDescription(list)
                 .setTimestamp()
                 .setFooter({ text: '/badgeboard', iconURL: 'https://i.imgur.com/kk9lhk3.png' });
-            await interaction.reply({ embeds: [badgesEmbed] });
+            await interaction.editReply({ embeds: [badgesEmbed] });
         }
         else {
-            await interaction.reply({ content: "No badges have been earned yet in this server" });
+            await interaction.editReply({ content: "No badges have been earned yet in this server" });
         }
     },
 };

@@ -6,6 +6,7 @@ module.exports = {
         .setName('assistboard')
         .setDescription('Lists the players with the highest number of assists'),
     async execute(interaction) {
+        await interaction.deferReply();
 
         const totals = await ItemInteractions.findAll({
             attributes: [
@@ -33,10 +34,10 @@ module.exports = {
                 .setDescription(list)
                 .setTimestamp()
                 .setFooter({ text: '/assistboard', iconURL: 'https://i.imgur.com/kk9lhk3.png' });
-            await interaction.reply({ embeds: [assistsEmbed] });
+            await interaction.editReply({ embeds: [assistsEmbed] });
         }
         else {
-            await interaction.reply({ content: "No assists have been performed yet in this server" });
+            await interaction.editReply({ content: "No assists have been performed yet in this server" });
         }
     },
 };

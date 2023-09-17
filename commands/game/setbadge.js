@@ -11,6 +11,7 @@ module.exports = {
                 .setDescription('The name of the badge to feature')
                 .setRequired(true)),
     async execute(interaction) {
+        await interaction.deferReply();
 
         const badgeName = interaction.options.getString('badge').trim();
 
@@ -47,14 +48,14 @@ module.exports = {
                         badge_id: badge.id
                     });
                 }
-                await interaction.reply({ content: "Featured badge successfully set to: " + badgeName });
+                await interaction.editReply({ content: "Featured badge successfully set to: " + badgeName });
             }
             else {
-                await interaction.reply({ content: "You do not have the badge " + badgeName });
+                await interaction.editReply({ content: "You do not have the badge " + badgeName });
             }
         }
         else {
-            await interaction.reply({ content: "Badge: " + badgeName + " does not exist" });
+            await interaction.editReply({ content: "Badge: " + badgeName + " does not exist" });
         }
     },
 };

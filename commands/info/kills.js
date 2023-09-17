@@ -6,6 +6,8 @@ module.exports = {
         .setName('kills')
         .setDescription('Lists kills from the active game'),
     async execute(interaction) {
+        await interaction.deferReply();
+
         const activeGame = await Games.findOne({
             where: {
                 guild_id: interaction.guildId,
@@ -41,14 +43,14 @@ module.exports = {
                     .setDescription(list)
                     .setTimestamp()
                     .setFooter({ text: '/kills', iconURL: 'https://i.imgur.com/kk9lhk3.png' });
-                await interaction.reply({ embeds: [killsEmbed] });
+                await interaction.editReply({ embeds: [killsEmbed] });
             }
             else {
-                interaction.reply({ content: "There have been no kills in the active game" });
+                interaction.editReply({ content: "There have been no kills in the active game" });
             }
         }
         else {
-            interaction.reply({ content: "There is currently no active game in this channel." });
+            interaction.editReply({ content: "There is currently no active game in this channel." });
         }
     },
 };

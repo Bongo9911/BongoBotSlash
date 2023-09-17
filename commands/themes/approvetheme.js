@@ -12,6 +12,7 @@ module.exports = {
                 .setRequired(true))
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
     async execute(interaction) {
+        await interaction.deferReply();
 
         const themeName = interaction.options.getString('theme').trim();
 
@@ -26,10 +27,10 @@ module.exports = {
         if (theme) {
             theme.suggestion = false;
             await theme.save();
-            await interaction.reply({ content: "Theme '" + themeName + "' approved" });
+            await interaction.editReply({ content: "Theme '" + themeName + "' approved" });
         }
         else {
-            await interaction.reply({ content: "Theme '" + themeName + "' not found" });
+            await interaction.editReply({ content: "Theme '" + themeName + "' not found" });
         }
 
     },

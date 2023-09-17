@@ -40,7 +40,7 @@ module.exports = {
                 });
         }
         else {
-            interaction.followUp({ content: "Cannot stop the game because there is no game running in this channel." })
+            interaction.editReply({ content: "Cannot stop the game because there is no game running in this channel." })
         }
     },
 };

@@ -6,6 +6,8 @@ module.exports = {
         .setName('games')
         .setDescription('Lists active games for the server'),
     async execute(interaction) {
+        await interaction.deferReply();
+
         let guildGames = await Games.findAll({
             where: {
                 guild_id: interaction.guildId
@@ -25,10 +27,10 @@ module.exports = {
                 .setDescription(list)
                 .setTimestamp()
                 .setFooter({ text: '/games', iconURL: 'https://i.imgur.com/kk9lhk3.png' });
-            await interaction.reply({ embeds: [gamesEmbed] });
+            await interaction.editReply({ embeds: [gamesEmbed] });
         }
         else {
-            await interaction.reply({ content: "No active games found." });
+            await interaction.editReply({ content: "No active games found." });
         }
 
     },
