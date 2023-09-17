@@ -12,7 +12,7 @@ const reactionEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "
     "❤️", "🧡", "💛", "💚", "💙", "💜", "🤎", "🖤", "🤍", "💗"];
 
 //TODO: add settings to DB
-const cooldownEnabled = false;
+const cooldownEnabled = true;
 const cooldownMinutes = 60;
 const giveAndTakeRoleID = "983347003176132608";
 const itemsForFinalVote = 2;
