@@ -23,12 +23,18 @@ module.exports = {
             }
         })
 
-        const killCount = await getInteractionCount(user.id, "Kill");
-        const saveCount = await getInteractionCount(user.id, "Save");
-        const assistCount = await getInteractionCount(user.id, "Assist");
+        const killCount = await getInteractionCount(user.id, interaction.guildId, "Kill");
+        const saveCount = await getInteractionCount(user.id, interaction.guildId, "Save");
+        const assistCount = await getInteractionCount(user.id, interaction.guildId, "Assist");
         const swapCount = (await GameHistory.count({
             where: {
                 user_id: user.id
+            },
+            include: {
+                model: Games,
+                where: {
+                    guild_id: interaction.guildId
+                }
             },
             group: ['user_id', 'turn_number']
         })).length;
@@ -76,10 +82,11 @@ module.exports = {
     },
 };
 
-async function getInteractionCount(userId, type) {
+async function getInteractionCount(userId, guildId, type) {
     return await ItemInteractions.count({
         where: {
             user_id: userId,
+            guild_id: guildId,
             type: type
         }
     });
