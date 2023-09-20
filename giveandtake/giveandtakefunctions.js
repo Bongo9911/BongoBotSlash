@@ -13,7 +13,8 @@ const reactionEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "
 
 //TODO: add settings to DB
 const cooldownEnabled = true;
-const cooldownMinutes = 60;
+//TODO: reset to 60
+const cooldownMinutes = 30;
 const giveAndTakeRoleID = "983347003176132608";
 const itemsForFinalVote = 2;
 const themeVotingEnabled = true;
