@@ -226,7 +226,7 @@ GameHistory.belongsTo(Games, { foreignKey: 'game_id' });
 ItemInteractions.belongsTo(Games, { foreignKey: 'game_id' });
 ItemInteractions.belongsTo(GameItems, { foreignKey: 'item_id' });
 
-UserBadges.belongsTo(Badges, { sourceKey: "badge_id" });
+UserBadges.belongsTo(Badges, { sourceKey: "badge_id", foreignKey: 'id' });
 
 ThemeItems.belongsTo(Themes, { foreignKey: "theme_id" });
 
