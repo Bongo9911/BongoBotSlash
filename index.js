@@ -30,6 +30,9 @@ for (const folder of commandFolders) {
 }
 
 client.on(Events.MessageCreate, async message => {
+	if (message.author.bot) return;
+	if (message.channel.type === "dm") return;
+
 	let content = message.content;
 	if ((content.startsWith("+") || content.startsWith("-")) && content.indexOf("+") != -1 && content.indexOf("-") != -1) {
 		const giveName = content.split("+")[1].split("-")[0].trim().toLowerCase();
