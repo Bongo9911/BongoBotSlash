@@ -706,7 +706,7 @@ async function CheckThemeVoteStatus() {
 
             const theme = await Themes.findOne({
                 where: {
-                    id: winningTheme.id
+                    id: winningTheme.theme_id
                 }
             });
 
