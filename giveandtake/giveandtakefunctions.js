@@ -630,7 +630,7 @@ async function startThemeVote(channel) {
     if (chosenThemes.length) {
 
         const endTime = new Date();
-        endTime.setHours(endTime.getHours() + 12);
+        endTime.setHours(endTime.getHours() + (24 * 3));
 
         let description = "";
 
