@@ -31,6 +31,8 @@ module.exports = {
                 include: Badges
             });
 
+            console.log(badges)
+
             list += "`" + getRankString(i + 1) + ".` <@" + totals[i].user_id + "> `" +
                 totals[i].dataValues.count + " badge" + (totals[i].dataValues.count != 1 ? "s`" : "`") + 
                 badges.map(b => b.badge.emoji).join('') + "\n";
