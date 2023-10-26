@@ -28,13 +28,16 @@ module.exports = {
                     user_id: totals[i].user_id,
                     guild_id: interaction.guildId
                 },
-                include: Badges
+                include: {
+                    model: Badges,
+                    required: true
+                }
             });
 
             console.log(badges)
 
             list += "`" + getRankString(i + 1) + ".` <@" + totals[i].user_id + "> `" +
-                totals[i].dataValues.count + " badge" + (totals[i].dataValues.count != 1 ? "s`" : "`") + 
+                totals[i].dataValues.count + " badge" + (totals[i].dataValues.count != 1 ? "s`" : "`") +
                 badges.map(b => b.badge.emoji).join('') + "\n";
         }
 
