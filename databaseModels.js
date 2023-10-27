@@ -220,15 +220,104 @@ const ThemeVoteThemes = sequelize.define('theme_vote_themes', {
     timestamps: true
 });
 
+const SettingsConfig = sequelize.define('settings_config', {
+    setting_name: Sequelize.STRING,
+    default_value: Sequelize.STRING,
+    setting_type: Sequelize.STRING,
+    min: Sequelize.INTEGER,
+    max: Sequelize.INTEGER
+},
+{
+    paranoid: true,
+    timestamps: true
+})
+
+const GuildSettings = sequelize.define('guild_settings', {
+    guild_id: Sequelize.STRING,
+    setting_id: {
+        type: Sequelize.INTEGER,
+        references: {
+            model: SettingsConfig,
+            key: 'id'
+        }
+    },
+    value: Sequelize.STRING
+},
+{    
+    paranoid: true,
+    timestamps: true,
+    indexes: [
+        {
+            unique: true,
+            fields: ['guild_id', 'setting_id']
+        }
+    ]
+});
+
+const ChannelSettings = sequelize.define('channel_settings', {
+    guild_id: Sequelize.STRING,
+    channel_id: Sequelize.STRING,
+    setting_id: {
+        type: Sequelize.INTEGER,
+        references: {
+            model: SettingsConfig,
+            key: 'id'
+        }
+    },
+    value: Sequelize.STRING
+},
+{
+    paranoid: true,
+    timestamps: true,
+    indexes: [
+        {
+            unique: true,
+            fields: ['guild_id', 'channel_id', 'setting_id']
+        }
+    ]
+});
+
+const GameSettings = sequelize.define('game_settings', {
+    game_id: {
+        type: Sequelize.INTEGER,
+        references: {
+            model: Games,
+            key: 'id'
+        }
+    },
+    setting_id: {
+        type: Sequelize.INTEGER,
+        references: {
+            model: SettingsConfig,
+            key: 'id'
+        }
+    },
+    value: Sequelize.STRING
+},
+{
+    paranoid: true,
+    timestamps: true,
+    indexes: [
+        {
+            unique: true,
+            fields: ['game_id', 'setting_id']
+        }
+    ]
+});
+
 GameItems.belongsTo(Games, { foreignKey: 'game_id' });
 GameHistory.belongsTo(Games, { foreignKey: 'game_id' });
 
 ItemInteractions.belongsTo(Games, { foreignKey: 'game_id' });
 ItemInteractions.belongsTo(GameItems, { foreignKey: 'item_id' });
 
-UserBadges.hasOne(Badges, { sourceKey: "badge_id", foreignKey: 'id' })
+UserBadges.hasOne(Badges, { sourceKey: "badge_id", foreignKey: 'id' });
 
 ThemeItems.belongsTo(Themes, { foreignKey: "theme_id" });
+
+GuildSettings.hasOne(SettingsConfig, { sourceKey: "setting_id", foreignKey: 'id' });
+ChannelSettings.hasOne(SettingsConfig, { sourceKey: "setting_id", foreignKey: 'id' });
+GameSettings.hasOne(SettingsConfig, { sourceKey: "setting_id", foreignKey: 'id' });
 
 exports.sequelize = sequelize;
 exports.Games = Games;
@@ -244,3 +333,7 @@ exports.GlobalAdmins = GlobalAdmins;
 exports.Badges = Badges;
 exports.ThemeVotes = ThemeVotes;
 exports.ThemeVoteThemes = ThemeVoteThemes;
+exports.SettingsConfig = SettingsConfig;
+exports.GuildSettings = GuildSettings;
+exports.ChannelSettings = ChannelSettings;
+exports.GameSettings = GameSettings;

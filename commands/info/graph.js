@@ -87,15 +87,17 @@ module.exports = {
             let datasets = [];
 
             for (let i = 0; i < items.length; ++i) {
+                let rgbColor = hexToRgb(items[i].color);
+
                 datasets.push({
                     label: items[i].name,
                     data: fullData[i],
                     fill: false,
                     //TODO: Color is in hex right now, need to convert to RGB
-                    borderColor: items[i].color ? ['rgba(' + items[i].color[0] + "," + items[i].color[1] + "," + items[i].color[2] + ", 1)"] :
+                    borderColor: rgbColor ? ['rgba(' + rgbColor.r + "," + rgbColor.g + "," + rgbColor.b + ", 1)"] :
                         ['rgba(' + Math.round(colors[i % colors.length][0] / (1 + Math.floor(i / colors.length))) + ',' + Math.round(colors[i % colors.length][1] / (1 + Math.floor(i / colors.length)))
                             + ',' + Math.round(colors[i % colors.length][2] / (1 + Math.floor(i / colors.length))) + ', 1)'],
-                    backgroundColor: items[i].color ? 'rgba(' + items[i].color[0] + "," + items[i].color[1] + "," + items[i].color[2] + ", 1)" :
+                    backgroundColor: rgbColor ? 'rgba(' + rgbColor.r + "," + rgbColor.g + "," + rgbColor.b + ", 1)" :
                         'rgba(' + Math.round(colors[i % colors.length][0] / (1 + Math.floor(i / colors.length))) + ',' + Math.round(colors[i % colors.length][1] / (1 + Math.floor(i / colors.length)))
                         + ',' + Math.round(colors[i % colors.length][2] / (1 + Math.floor(i / colors.length))) + ', 1)' //0.2
                 })
@@ -136,3 +138,12 @@ module.exports = {
         }
     },
 };
+
+function hexToRgb(hex) {
+    let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}

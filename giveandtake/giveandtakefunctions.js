@@ -3,24 +3,24 @@ const { Op } = require("sequelize");
 const { Channel, EmbedBuilder } = require('discord.js');
 const { client } = require('../client');
 const fs = require('node:fs');
+const { GetSettingValue } = require('./settingsService.js');
 
 //TODO: add game settings:
 //Add ability to halve point totals when a certain % of items have been eliminated
-//Add setting to change number items in final
+//Add setting to change number of items in final
+//Add settings for all constants below
 
 const reactionEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟",
     "❤️", "🧡", "💛", "💚", "💙", "💜", "🤎", "🖤", "🤍", "💗"];
 
 //TODO: add settings to DB
-const cooldownEnabled = true;
-//TODO: reset to 60
-const cooldownMinutes = 30;
+// const cooldownMinutes = 30;
 const giveAndTakeRoleID = "983347003176132608";
 const itemsForFinalVote = 2;
 const themeVotingEnabled = true;
 const themesPerVote = 3;
 
-async function makeMove(guildId, channelId, userId, giveName, takeName) {
+async function MakeMove(guildId, channelId, userId, giveName, takeName) {
     const game = await Games.findOne({
         where: {
             guild_id: guildId,
@@ -30,14 +30,15 @@ async function makeMove(guildId, channelId, userId, giveName, takeName) {
     });
 
     if (game && game.status === "SWAPPING") {
-        const nextMoveTime = await getUserNextMoveTime(game.id, userId);
+        const nextMoveTime = await GetUserNextMoveTime(game.id, userId);
 
-        if (cooldownEnabled && nextMoveTime > new Date().getTime()) {
+        //Checks to make sure the user is not on cooldown
+        if (nextMoveTime > new Date().getTime()) {
             return { message: "You can make another move <t:" + Math.ceil(nextMoveTime / 1000) + ":R>." }
         }
 
-        const giveItem = await getItem(game.id, giveName);
-        const takeItem = await getItem(game.id, takeName);
+        const giveItem = await GetItem(game.id, giveName);
+        const takeItem = await GetItem(game.id, takeName);
 
         if (giveItem && takeItem) {
             if (giveItem.points > 0 && takeItem.points > 0 && giveItem.id !== takeItem.id) {
@@ -45,26 +46,26 @@ async function makeMove(guildId, channelId, userId, giveName, takeName) {
                 await game.increment('turns');
                 await game.reload();
 
-                await addPoints(giveItem, 1);
-                await addPoints(takeItem, -1);
+                await AddPoints(giveItem, 1);
+                await AddPoints(takeItem, -1);
 
                 if (giveItem.points === 2) {
-                    await addSave(game, giveItem, userId);
+                    await AddSave(game, giveItem, userId);
                 }
 
                 if (takeItem.points === 0) {
-                    await addKill(game, takeItem, userId);
+                    await AddKill(game, takeItem, userId);
                 }
 
                 //insert into history table
-                await addHistoryRecord(game, giveItem, userId);
-                await addHistoryRecord(game, takeItem, userId);
+                await AddHistoryRecord(game, giveItem, userId);
+                await AddHistoryRecord(game, takeItem, userId);
 
-                await addPointSwapCountBadges(game, userId);
+                await AddPointSwapCountBadges(game, userId);
 
-                await checkGameStatus(game);
+                await CheckGameStatus(game);
 
-                const pointsEmbed = await buildPointsEmbed(game, takeItem);
+                const pointsEmbed = await BuildPointsEmbed(game, takeItem);
 
                 return { embed: pointsEmbed };
             }
@@ -101,7 +102,13 @@ async function makeMove(guildId, channelId, userId, giveName, takeName) {
     }
 }
 
-async function getUserNextMoveTime(gameId, userId) {
+/**
+ * Get the next time when the user can make a move
+ * @param {number} gameId The ID of the game
+ * @param {string} userId The ID of the user
+ * @returns The date and time the user can next move
+ */
+async function GetUserNextMoveTime(gameId, userId) {
     const lastUserTurn = await GameHistory.findOne({
         where: {
             game_id: gameId,
@@ -110,9 +117,9 @@ async function getUserNextMoveTime(gameId, userId) {
         order: [['createdAt', 'DESC']],
     });
 
+    const cooldownMinutes = await GetSettingValue("CooldownMinutes", gameId);
+
     if (lastUserTurn) {
-        // return Date.parse(lastUserTurn.createdAt) + 900000;
-        // return Date.parse(lastUserTurn.createdAt) + 3600000;
         return Date.parse(lastUserTurn.createdAt) + (cooldownMinutes * 60 * 1000);
     }
     else {
@@ -120,7 +127,7 @@ async function getUserNextMoveTime(gameId, userId) {
     }
 }
 
-async function getItem(gameId, item) {
+async function GetItem(gameId, item) {
     return await GameItems.findOne({
         where: {
             game_id: gameId,
@@ -132,15 +139,15 @@ async function getItem(gameId, item) {
     });
 }
 
-async function addPoints(item, points) {
+async function AddPoints(item, points) {
     await item.increment('points', { by: points });
     await item.reload();
 }
 
-async function addKill(game, item, userId) {
-    await addInteraction(game, item, userId, "Kill");
-    await addKillCountBadges(game, userId);
-    await addSpecialKillBadges(game, item, userId);
+async function AddKill(game, item, userId) {
+    await AddInteraction(game, item, userId, "Kill");
+    await AddKillCountBadges(game, userId);
+    await AddSpecialKillBadges(game, item, userId);
 
     const lastTake = await GameHistory.findOne({
         order: [['id', 'DESC']],
@@ -152,19 +159,19 @@ async function addKill(game, item, userId) {
 
     //User who kills can't also get assist
     if (lastTake && lastTake.user_id !== userId) {
-        await addInteraction(game, item, lastTake.user_id, "Assist");
-        await addAssistCountBadges(game, lastTake.user_id);
-        await addSpecialAssistBadges(game, item, lastTake.user_id);
+        await AddInteraction(game, item, lastTake.user_id, "Assist");
+        await AddAssistCountBadges(game, lastTake.user_id);
+        await AddSpecialAssistBadges(game, item, lastTake.user_id);
     }
 }
 
-async function addSave(game, item, userId) {
-    await addInteraction(game, item, userId, "Save");
-    await addSaveCountBadges(game, userId);
-    await addSpecialSaveBadges(game, item, userId);
+async function AddSave(game, item, userId) {
+    await AddInteraction(game, item, userId, "Save");
+    await AddSaveCountBadges(game, userId);
+    await AddSpecialSaveBadges(game, item, userId);
 }
 
-async function addKillCountBadges(game, userId) {
+async function AddKillCountBadges(game, userId) {
     const killCount = await ItemInteractions.count({
         where: {
             guild_id: game.guild_id,
@@ -175,23 +182,23 @@ async function addKillCountBadges(game, userId) {
 
     if (killCount === 1) {
         //1 kill badge - Dead To Me ☠️
-        await addBadge(game, userId, 1);
+        await AddBadge(game, userId, 1);
     }
     else if (killCount === 5) {
         //5 kills - Hunter 🏹
-        await addBadge(game, userId, 4);
+        await AddBadge(game, userId, 4);
     }
     else if (killCount === 10) {
         //10 kills - Hitman 🔫
-        await addBadge(game, userId, 7);
+        await AddBadge(game, userId, 7);
     }
     else if (killCount === 25) {
         //25 kills - Serial Killer 🔪
-        await addBadge(game, userId, 10);
+        await AddBadge(game, userId, 10);
     }
 }
 
-async function addAssistCountBadges(game, userId) {
+async function AddAssistCountBadges(game, userId) {
     const assistCount = await ItemInteractions.count({
         where: {
             guild_id: game.guild_id,
@@ -202,23 +209,23 @@ async function addAssistCountBadges(game, userId) {
 
     if (assistCount === 1) {
         //1 assist badge - Helping Hand 🫶
-        await addBadge(game, userId, 3);
+        await AddBadge(game, userId, 3);
     }
     else if (assistCount === 5) {
         //5 assists - True Homie 🫂
-        await addBadge(game, userId, 6);
+        await AddBadge(game, userId, 6);
     }
     else if (assistCount === 10) {
         //10 assists - Here to Help ❤️‍🔥 
-        await addBadge(game, userId, 9);
+        await AddBadge(game, userId, 9);
     }
     else if (assistCount === 25) {
         //25 assists - Partner in Crime 👯
-        await addBadge(game, userId, 12);
+        await AddBadge(game, userId, 12);
     }
 }
 
-async function addSaveCountBadges(game, userId) {
+async function AddSaveCountBadges(game, userId) {
     const saveCount = await ItemInteractions.count({
         where: {
             guild_id: game.guild_id,
@@ -229,23 +236,23 @@ async function addSaveCountBadges(game, userId) {
 
     if (saveCount === 1) {
         //1 save badge - Savior 😇
-        await addBadge(game, userId, 2);
+        await AddBadge(game, userId, 2);
     }
     else if (saveCount === 5) {
         //5 saves - To The Rescue ⛑️
-        await addBadge(game, userId, 5);
+        await AddBadge(game, userId, 5);
     }
     else if (saveCount === 10) {
         //10 saves - Super Hero 🦸
-        await addBadge(game, userId, 8);
+        await AddBadge(game, userId, 8);
     }
     else if (saveCount === 25) {
         //Knight in Shining Armor 🛡️
-        await addBadge(game, userId, 11);
+        await AddBadge(game, userId, 11);
     }
 }
 
-async function addSpecialKillBadges(game, item, userId) {
+async function AddSpecialKillBadges(game, item, userId) {
     const gameKillCount = await ItemInteractions.count({
         where: {
             game_id: game.id,
@@ -253,9 +260,9 @@ async function addSpecialKillBadges(game, item, userId) {
         }
     });
 
-    if (gameKillCount === 0 && !(await userHasBadge(game, userId, 13))) {
+    if (gameKillCount === 0 && !(await UserHasBadge(game, userId, 13))) {
         //First blood
-        await addBadge(game, userId, 13);
+        await AddBadge(game, userId, 13);
     }
     else {
         const itemCount = await GameItems.count({
@@ -264,9 +271,9 @@ async function addSpecialKillBadges(game, item, userId) {
             }
         });
 
-        if (gameKillCount === itemCount - 2 && !(await userHasBadge(game, userId, 14))) {
+        if (gameKillCount === itemCount - 2 && !(await UserHasBadge(game, userId, 14))) {
             //Finishing Blow
-            await addBadge(game, userId, 14);
+            await AddBadge(game, userId, 14);
         }
     }
 
@@ -278,9 +285,9 @@ async function addSpecialKillBadges(game, item, userId) {
         }
     });
 
-    if (userGameKillCount === 3 && !(await userHasBadge(game, userId, 17))) {
+    if (userGameKillCount === 3 && !(await UserHasBadge(game, userId, 17))) {
         //Triple Kill
-        await addBadge(game, userId, 17);
+        await AddBadge(game, userId, 17);
     }
 
     const lastKill = await ItemInteractions.findOne({
@@ -294,9 +301,9 @@ async function addSpecialKillBadges(game, item, userId) {
         }
     });
 
-    if (lastKill && lastKill.user_id === userId && !(await userHasBadge(game, userId, 20))) {
+    if (lastKill && lastKill.user_id === userId && !(await UserHasBadge(game, userId, 20))) {
         //Two to Tango
-        await addBadge(game, userId, 20);
+        await AddBadge(game, userId, 20);
     }
 
     const lastSave = await ItemInteractions.findOne({
@@ -309,13 +316,13 @@ async function addSpecialKillBadges(game, item, userId) {
     });
 
     if (lastSave && Date.parse(lastSave.createdAt) <= Date.now() - (5 * 60 * 1000) &&
-        !(await userHasBadge(game, userId, 16))) {
+        !(await UserHasBadge(game, userId, 16))) {
         //Memento Mori
-        await addBadge(game, userId, 16);
+        await AddBadge(game, userId, 16);
     }
 }
 
-async function addSpecialSaveBadges(game, item, userId) {
+async function AddSpecialSaveBadges(game, item, userId) {
     const saveCount = await ItemInteractions.count({
         where: {
             game_id: game.id,
@@ -324,9 +331,9 @@ async function addSpecialSaveBadges(game, item, userId) {
         }
     });
 
-    if (saveCount >= 2 && !(await userHasBadge(game, userId, 15))) {
+    if (saveCount >= 2 && !(await UserHasBadge(game, userId, 15))) {
         //Double Trouble
-        await addBadge(game, userId, 15);
+        await AddBadge(game, userId, 15);
     }
 
     const userGameSaveCount = await ItemInteractions.count({
@@ -337,13 +344,13 @@ async function addSpecialSaveBadges(game, item, userId) {
         }
     });
 
-    if (userGameSaveCount === 3 && !(await userHasBadge(game, userId, 18))) {
+    if (userGameSaveCount === 3 && !(await UserHasBadge(game, userId, 18))) {
         //Three's A Crowd
-        await addBadge(game, userId, 18);
+        await AddBadge(game, userId, 18);
     }
 }
 
-async function addSpecialAssistBadges(game, item, userId) {
+async function AddSpecialAssistBadges(game, item, userId) {
     const userGameAssistCount = await ItemInteractions.count({
         where: {
             game_id: game.id,
@@ -352,13 +359,13 @@ async function addSpecialAssistBadges(game, item, userId) {
         }
     });
 
-    if (userGameAssistCount === 3 && !(await userHasBadge(game, userId, 19))) {
+    if (userGameAssistCount === 3 && !(await UserHasBadge(game, userId, 19))) {
         //Third Time's The Charm
-        await addBadge(game, userId, 19);
+        await AddBadge(game, userId, 19);
     }
 }
 
-async function addPointSwapCountBadges(game, userId) {
+async function AddPointSwapCountBadges(game, userId) {
     const userPointSwapCount = (await GameHistory.count({
         where: {
             user_id: userId
@@ -373,23 +380,23 @@ async function addPointSwapCountBadges(game, userId) {
 
     if (userPointSwapCount === 1) {
         //Baby's First Swap 👶
-        await addBadge(game, userId, 21);
+        await AddBadge(game, userId, 21);
     } else if (userPointSwapCount === 10) {
         //👦
-        await addBadge(game, userId, 22);
+        await AddBadge(game, userId, 22);
     } else if (userPointSwapCount === 100) {
         //👩
-        await addBadge(game, userId, 23);
+        await AddBadge(game, userId, 23);
     } else if (userPointSwapCount === 1_000) {
         //👴
-        await addBadge(game, userId, 24);
+        await AddBadge(game, userId, 24);
     } else if (userPointSwapCount === 10_000) {
         //🦴
-        await addBadge(game, userId, 25);
+        await AddBadge(game, userId, 25);
     }
 }
 
-async function addBadge(game, userId, badgeId) {
+async function AddBadge(game, userId, badgeId) {
     await UserBadges.create({
         guild_id: game.guild_id,
         user_id: userId,
@@ -409,7 +416,7 @@ async function addBadge(game, userId, badgeId) {
     }
 }
 
-async function userHasBadge(game, userId, badgeId) {
+async function UserHasBadge(game, userId, badgeId) {
     const userBadge = await UserBadges.findOne({
         where: {
             guild_id: game.guild_id,
@@ -421,7 +428,7 @@ async function userHasBadge(game, userId, badgeId) {
     return userBadge != null;
 }
 
-async function addInteraction(game, item, userId, type) {
+async function AddInteraction(game, item, userId, type) {
     await ItemInteractions.create({
         game_id: game.id,
         guild_id: game.guild_id,
@@ -432,7 +439,7 @@ async function addInteraction(game, item, userId, type) {
     });
 }
 
-async function addHistoryRecord(game, item, userId) {
+async function AddHistoryRecord(game, item, userId) {
     await GameHistory.create({
         game_id: game.id,
         item_id: item.id,
@@ -442,7 +449,7 @@ async function addHistoryRecord(game, item, userId) {
     })
 }
 
-async function checkGameStatus(game) {
+async function CheckGameStatus(game) {
     const items = await GameItems.findAll({
         where: {
             game_id: game.id,
@@ -453,11 +460,9 @@ async function checkGameStatus(game) {
     });
 
     //2 items left, end game
-    if (items.length === itemsForFinalVote) {
+    if (items.length <= itemsForFinalVote) {
         const endTime = new Date();
         endTime.setHours(endTime.getHours() + 12);
-
-        //TODO: ping G&T role
 
         let description = "**Voting ends** <t:" + Math.ceil(endTime.getTime() / 1000) + ":R>\n";
 
@@ -495,7 +500,7 @@ async function checkGameStatus(game) {
     }
 }
 
-async function buildPointsEmbed(game, takeItem) {
+async function BuildPointsEmbed(game, takeItem) {
     const items = await GameItems.findAll({
         where: {
             game_id: game.id,
@@ -545,7 +550,7 @@ async function buildPointsEmbed(game, takeItem) {
 }
 
 
-async function checkGameVoteStatus() {
+async function CheckGameVoteStatus() {
     const finishedGames = await Games.findAll({
         where: {
             active: true,
@@ -603,7 +608,7 @@ async function checkGameVoteStatus() {
             game.active = false;
             await game.save();
 
-            await startThemeVote(channel);
+            await StartThemeVote(channel);
         }
     });
 }
@@ -612,7 +617,7 @@ async function checkGameVoteStatus() {
 * Starts a vote for the next game theme
 * @param {Channel} channel
 */
-async function startThemeVote(channel) {
+async function StartThemeVote(channel) {
     if (!themeVotingEnabled) {
         return;
     }
@@ -734,7 +739,7 @@ async function CheckThemeVoteStatus() {
 
             await channel.send(message);
 
-            const pointsEmbed = await buildPointsEmbed(game, {id: -1});
+            const pointsEmbed = await BuildPointsEmbed(game, {id: -1});
 
             channel.send({ embeds: [pointsEmbed] });
         }
@@ -783,7 +788,7 @@ async function StartGame(theme, points, guildId, channelId, userId) {
     return game;
 }
 
-async function createBadges() {
+async function CreateBadges() {
     fs.readFile("./badges.json", "utf8", async (err, jsonString) => {
         if (err) {
             console.error("Error readin file: " + err);
@@ -811,8 +816,8 @@ async function createBadges() {
     });
 }
 
-exports.makeMove = makeMove;
-exports.checkGameVoteStatus = checkGameVoteStatus;
-exports.createBadges = createBadges;
+exports.MakeMove = MakeMove;
+exports.CheckGameVoteStatus = CheckGameVoteStatus;
+exports.CreateBadges = CreateBadges;
 exports.CheckThemeVoteStatus = CheckThemeVoteStatus
 exports.StartGame = StartGame
