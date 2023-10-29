@@ -4,7 +4,7 @@ const { Collection, Events, ActivityType } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 const { sequelize } = require('./databaseModels');
-const { makeMove, checkGameVoteStatus, createBadges, startThemeVote, CheckThemeVoteStatus } = require('./giveandtake/giveandtakefunctions');
+const { MakeMove, CheckGameVoteStatus, CreateBadges, StartThemeVote, CheckThemeVoteStatus } = require('./giveandtake/giveandtakefunctions');
 const { client } = require('./client');
 
 client.commands = new Collection();
@@ -37,7 +37,7 @@ client.on(Events.MessageCreate, async message => {
 	if ((content.startsWith("+") || content.startsWith("-")) && content.indexOf("+") != -1 && content.indexOf("-") != -1) {
 		const giveName = content.split("+")[1].split("-")[0].trim().toLowerCase();
 		const takeName = content.split("-")[1].split("+")[0].trim().toLowerCase();
-		let reply = await makeMove(message.guildId, message.channelId, message.author.id, giveName, takeName);
+		let reply = await MakeMove(message.guildId, message.channelId, message.author.id, giveName, takeName);
 		if ("message" in reply) {
 			message.reply({ content: reply.message });
 		}
@@ -74,13 +74,13 @@ client.once(Events.ClientReady, async c => {
 
 	client.user.setActivity('Give & Take', { type: ActivityType.Playing });
 
-	await createBadges();
+	await CreateBadges();
 });
 
 client.login(process.env.TOKEN);
 
 //Check every minute if there is any finished games
 setInterval(async function() {
-	await checkGameVoteStatus();
+	await CheckGameVoteStatus();
 	await CheckThemeVoteStatus();
 }, 60 * 1000);

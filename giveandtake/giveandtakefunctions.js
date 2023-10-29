@@ -18,7 +18,7 @@ const reactionEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "
 const giveAndTakeRoleID = "983347003176132608";
 const itemsForFinalVote = 2;
 const themeVotingEnabled = true;
-const themesPerVote = 3;
+const themesPerVote = 7;
 
 async function MakeMove(guildId, channelId, userId, giveName, takeName) {
     const game = await Games.findOne({
@@ -649,7 +649,8 @@ async function StartThemeVote(channel) {
             .setDescription(description);
 
         let content = "**Voting ends** <t:" + Math.ceil(endTime.getTime() / 1000) + ":R>";
-        if (giveAndTakeRoleID.length) {
+        //TODO: make this use settings
+        if (giveAndTakeRoleID.length && channel.guildId === "279211267443523585") {
             content += "\n<@&" + giveAndTakeRoleID + ">"
         }
 
@@ -819,5 +820,6 @@ async function CreateBadges() {
 exports.MakeMove = MakeMove;
 exports.CheckGameVoteStatus = CheckGameVoteStatus;
 exports.CreateBadges = CreateBadges;
+exports.StartThemeVote = StartThemeVote
 exports.CheckThemeVoteStatus = CheckThemeVoteStatus
 exports.StartGame = StartGame
