@@ -3,7 +3,7 @@ const { Op } = require("sequelize");
 const { Channel, EmbedBuilder } = require('discord.js');
 const { client } = require('../client');
 const fs = require('node:fs');
-const { GetSettingValue } = require('./settingsService.js');
+const { GetGameSettingValue, GetChannelSettingValue } = require('./settingsService.js');
 
 //TODO: add game settings:
 //Add ability to halve point totals when a certain % of items have been eliminated
@@ -14,11 +14,9 @@ const reactionEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "
     "❤️", "🧡", "💛", "💚", "💙", "💜", "🤎", "🖤", "🤍", "💗"];
 
 //TODO: add settings to DB
-// const cooldownMinutes = 30;
-const giveAndTakeRoleID = "983347003176132608";
 const itemsForFinalVote = 2;
 const themeVotingEnabled = true;
-const themesPerVote = 7;
+const themesPerVote = 10;
 
 async function MakeMove(guildId, channelId, userId, giveName, takeName) {
     const game = await Games.findOne({
@@ -117,7 +115,7 @@ async function GetUserNextMoveTime(gameId, userId) {
         order: [['createdAt', 'DESC']],
     });
 
-    const cooldownMinutes = await GetSettingValue("CooldownMinutes", gameId);
+    const cooldownMinutes = await GetGameSettingValue("CooldownMinutes", gameId);
 
     if (lastUserTurn) {
         return Date.parse(lastUserTurn.createdAt) + (cooldownMinutes * 60 * 1000);
@@ -481,6 +479,7 @@ async function CheckGameStatus(game) {
 
         if (channel) {
             let content = "";
+            const giveAndTakeRoleID = GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.channelId)
             if (giveAndTakeRoleID.length) {
                 content = "<@&" + giveAndTakeRoleID + ">"
             }
@@ -649,7 +648,8 @@ async function StartThemeVote(channel) {
             .setDescription(description);
 
         let content = "**Voting ends** <t:" + Math.ceil(endTime.getTime() / 1000) + ":R>";
-        //TODO: make this use settings
+
+        const giveAndTakeRoleID = GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.channelId)
         if (giveAndTakeRoleID.length && channel.guildId === "279211267443523585") {
             content += "\n<@&" + giveAndTakeRoleID + ">"
         }
@@ -733,7 +733,9 @@ async function CheckThemeVoteStatus() {
 
             const game = await StartGame(theme, startingPoints, themeVote.guild_id, themeVote.channel_id, client.user.id);
 
-            message = "Starting game with theme: **" + theme.name + "**"
+            message = "Starting game with theme: **" + theme.name + "**";
+
+            const giveAndTakeRoleID = GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.channelId)
             if (giveAndTakeRoleID.length) {
                 message += "\n<@&" + giveAndTakeRoleID + ">"
             }

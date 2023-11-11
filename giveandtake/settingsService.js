@@ -1,13 +1,14 @@
 const { SettingsConfig, ChannelSettings, GuildSettings, GameSettings, Games } = require('../databaseModels.js');
 const { Op } = require("sequelize");
+const fs = require('node:fs');
 
 /**
- * Gets the value for a setting using the guild and channel's settings
+ * Gets the value for a setting using the game's, guild's, and channel's settings
  * @param {string} settingName The name of the setting
  * @param {number} gameID The id of the game
  * @returns {string|number|boolean} The value of the setting
  */
-async function GetSettingValue(settingName, gameID) {
+async function GetGameSettingValue(settingName, gameID) {
     const setting = await GetSettingConfigByName(settingName);
 
     const gameSetting = await GetGameSetting(setting.id, gameID);
@@ -17,12 +18,58 @@ async function GetSettingValue(settingName, gameID) {
 
     const game = await GetGame(gameID);
 
-    const channelSetting = await GetChannelSetting(setting.id, game.guild_id, game.channel_id);
+    return await GetChannelSettingValueFromSetting(setting, game.guild_id, game.channel_id)
+}
+
+/**
+ * Gets the value for a setting using the guild's and channel's settings
+ * @param {string} settingName The name of the setting
+ * @param {string} guildID The id of the guild
+ * @param {string} channelID The id of the channel
+ * @returns {string|number|boolean} The value of the setting
+ */
+async function GetChannelSettingValue(settingName, guildID, channelID) {
+    const setting = await GetSettingConfigByName(settingName);
+
+    return await GetChannelSettingValueFromSetting(setting, guildID, channelID);
+}
+
+/**
+ * Gets the value for a setting using the guild's and channel's settings and setting config
+ * @param {SettingsConfig} setting The setting config
+ * @param {string} guildID The id of the guild
+ * @param {string} channelID The id of the channel
+ * @returns {string|number|boolean} The value of the setting
+ */
+async function GetChannelSettingValueFromSetting(setting, guildID, channelID) {
+    const channelSetting = await GetChannelSetting(setting.id, guildID, channelID);
     if (channelSetting !== null) {
         return ConvertValueToType(channelSetting.value, setting.setting_type);
     }
 
-    const guildSetting = await GetGuildSetting(setting.id, game.guild_id);
+    return await GetGuildSettingValueFromSetting(setting, guildID);
+}
+
+/**
+ * Gets the value for a setting using the guild's settings
+ * @param {string} settingName The name of the setting
+ * @param {string} guildID The id of the guild
+ * @returns {string|number|boolean} The value of the setting
+ */
+async function GetGuildSettingValue(settingName, guildID) {
+    const setting = await GetSettingConfigByName(settingName);
+
+    return await GetGuildSettingValueFromSetting(setting, guildID);
+}
+
+/**
+ * Gets the value for a setting using the guild's settings and setting config
+ * @param {SettingsConfig} setting The setting config
+ * @param {string} guildID The id of the guild
+ * @returns {string|number|boolean} The value of the setting
+ */
+async function GetGuildSettingValueFromSetting(setting, guildID) {
+    const guildSetting = await GetGuildSetting(setting.id, guildID);
     if (guildSetting !== null) {
         return ConvertValueToType(guildSetting.value, setting.setting_type);
     } else {
@@ -90,6 +137,11 @@ async function GetGameSetting(settingID, gameID) {
     });
 }
 
+/**
+ * Gets a Give & Take game using the ID of the game
+ * @param {number} gameID 
+ * @returns {Games} The game object
+ */
 async function GetGame(gameID) {
     return await Games.findOne({
         where: {
@@ -151,6 +203,72 @@ async function SetGuildSetting(settingName, guildID, value) {
 }
 
 /**
+ * Sets the setting to a specified value for a channel
+ * @param {string} settingName The name of the setting
+ * @param {string} guildID The ID of the guild
+ * @param {string} channelID The ID of the channel
+ * @param {string} value The value being set
+ * @returns {object} The update results
+ */
+async function SetChannelSetting(settingName, guildID, channelID, value) {
+    const settingConfig = await GetSettingConfigByName(settingName);
+
+    value = value.trim();
+    const validation = ValidateSettingValue(settingConfig, value);
+    if (!validation.valid) {
+        return { result: false, error: validation.error };
+    }
+
+    const channelSetting = await GetChannelSetting(settingConfig.id, guildID, channelID);
+
+    if (channelSetting !== null) {
+        channelSetting.value = value;
+        await channelSetting.save();
+    } else {
+        await ChannelSettings.create({
+            guild_id: guildID,
+            channel_id: channelID,
+            setting_id: settingConfig.id,
+            value: value
+        });
+    }
+
+    return { result: true }
+}
+
+/**
+ * Sets the setting to a specified value for a guild
+ * @param {string} settingName The name of the setting
+ * @param {number} gameID the id of the game
+ * @param {string} value The value being set
+ * @returns {object} The update results
+ */
+async function SetGameSetting(settingName, gameID, value) {
+    const settingConfig = await GetSettingConfigByName(settingName);
+
+    value = value.trim();
+    const validation = ValidateSettingValue(settingConfig, value);
+    if (!validation.valid) {
+        return { result: false, error: validation.error };
+    }
+
+    const gameSetting = await GetGameSetting(settingConfig.id, gameID);
+
+    if (gameSetting !== null) {
+        gameSetting.value = value;
+        await gameSetting.save();
+    } else {
+        await GameSettings.create({
+            game_id: gameID,
+            setting_id: settingConfig.id,
+            value: value
+        });
+    }
+
+    return { result: true }
+}
+
+/**
  * Validates whether a value meets the setting constraints
  * @param {SettingsConfig} settingConfig The config object
  * @param {string} value The value to validate
@@ -202,5 +320,42 @@ function ValidateSettingValue(settingConfig, value) {
     return { valid: true };
 }
 
-exports.GetSettingValue = GetSettingValue;
+/**
+ * Reads the settings.json file to create any non-existant settings
+ */
+async function CreateSettingsIfNotExist() {
+    fs.readFile("./settings.json", "utf8", async (err, jsonString) => {
+        if (err) {
+            console.error("Error readin file: " + err);
+            return;
+        }
+        const settings = JSON.parse(jsonString);
+        settings.forEach(async (s) => {
+            const setting = await SettingsConfig.findOne({
+                where: {
+                    "id": s.id
+                }
+            });
+
+            if (!setting) {
+                console.log("Creating setting: " + s.setting_name)
+                await SettingsConfig.create({
+                    id: s.id,
+                    setting_name: s.setting_name,
+                    default_value: s.default_value,
+                    setting_type: s.setting_type,
+                    min: s.min,
+                    max: s.max
+                });
+            }
+        })
+    });
+}
+
+exports.GetGameSettingValue = GetGameSettingValue;
+exports.GetChannelSettingValue = GetChannelSettingValue;
+exports.GetGuildSettingValue = GetGuildSettingValue;
 exports.SetGuildSetting = SetGuildSetting;
+exports.SetChannelSetting = SetChannelSetting;
+exports.SetGameSetting = SetGameSetting;
+exports.CreateSettingsIfNotExist = CreateSettingsIfNotExist;

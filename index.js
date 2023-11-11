@@ -6,6 +6,7 @@ const path = require('node:path');
 const { sequelize } = require('./databaseModels');
 const { MakeMove, CheckGameVoteStatus, CreateBadges, StartThemeVote, CheckThemeVoteStatus } = require('./giveandtake/giveandtakefunctions');
 const { client } = require('./client');
+const { CreateSettingsIfNotExist } = require('./giveandtake/settingsService');
 
 client.commands = new Collection();
 
@@ -75,6 +76,7 @@ client.once(Events.ClientReady, async c => {
 	client.user.setActivity('Give & Take', { type: ActivityType.Playing });
 
 	await CreateBadges();
+	await CreateSettingsIfNotExist();
 });
 
 client.login(process.env.TOKEN);

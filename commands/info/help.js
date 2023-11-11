@@ -19,7 +19,7 @@ module.exports = {
                     name: 'Player Info', value: "`/stats` - Lists your player stats\n`/stats <ping>` - Lists the stats for the user pinged\n" +
                         "`/badges` - Lists all the obtainable badges\n`/setbadge <badge name>` - Set your featured badge to a badge you own\n" +
                         "`/killboard` - Lists the players with the most kills\n`/saveboard` - Lists the players with the most saves\n" +
-                        "`/assistboard` - Lists the players with the most assists", inline: true
+                        "`/assistboard` - Lists the players with the most assists\n`/swapboard` - Lists the players with the most point swaps", inline: true
                 },
             )
             .setTimestamp()
