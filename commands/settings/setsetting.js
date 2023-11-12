@@ -2,69 +2,72 @@ const { SlashCommandBuilder, EmbedBuilder, Interaction } = require('discord.js')
 const { Games } = require('../../databaseModels.js');
 const { SetGuildSetting, SetChannelSetting, SetGameSetting } = require('../../giveandtake/settingsService.js');
 
-let choices = [
-    { name: "Cooldown in Minutes", value: 'CooldownMinutes', game: true },
-    { name: "Give and Take Role ID", value: 'GiveAndTakeRoleID', game: false },
+let settingDefs = [
+    { alias: "cooldowninminutes", cleanName: "Cooldown In Minutes", name: 'CooldownMinutes', game: true, type: "integer", description: "The number of minutes a user must wait before making another point swap" },
+    { alias: "giveandtakerole", cleanName: "Give & Take Role", name: 'GiveAndTakeRoleID', game: false, type: "role", description: "The role used to ping for Give & Take games and votes" },
 ];
 
+const settingCommand = new SlashCommandBuilder()
+    .setName('setsetting')
+    .setDescription('Sets a value for a setting');
+
+settingDefs.forEach(choice => {
+    settingCommand.addSubcommand(subcommand => {
+        subcommand = subcommand
+            .setName(choice.alias)
+            .setDescription(choice.description)
+            .addStringOption(option => {
+                option = option.setName("scope")
+                    .setDescription("Where this setting will take effect")
+                    .setRequired(true);
+
+                if (choice.game) {
+                    option = option.addChoices({ name: "guild", value: "guild" }, { name: "channel", value: "channel" }, { name: "game", value: "game" });
+                } else {
+                    option = option.addChoices({ name: "guild", value: "guild" }, { name: "channel", value: "channel" });
+                }
+                return option
+            });
+
+        switch (choice.type) {
+            case "string":
+                subcommand = subcommand.addStringOption(option =>
+                    option.setName("value")
+                        .setDescription("The value to set")
+                        .setRequired(true)
+                );
+                break;
+            case "number":
+                subcommand = subcommand.addNumberOption(option =>
+                    option.setName("value")
+                        .setDescription("The value to set")
+                        .setRequired(true)
+                );
+                break;
+            case "integer":
+                subcommand = subcommand.addIntegerOption(option =>
+                    option.setName("value")
+                        .setDescription("The value to set")
+                        .setRequired(true)
+                );
+                break;
+            case "role":
+                subcommand = subcommand.addRoleOption(option =>
+                    option.setName("value")
+                        .setDescription("The value to set")
+                        .setRequired(true)
+                );
+                break;
+            default:
+                break;
+        }
+
+        return subcommand;
+    });
+});
+
 module.exports = {
-    data: new SlashCommandBuilder()
-        .setName('setsetting')
-        .setDescription('Sets a value for a setting')
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("guild")
-                .setDescription("Sets the value of the setting to be the default for the whole guild")
-                .addStringOption(option =>
-                    option.setName("setting")
-                        .setDescription("The name of the setting to the set the value of")
-                        .setRequired(true)
-                        .addChoices(
-                            ...choices
-                        )
-                )
-                .addStringOption(option =>
-                    option.setName("value")
-                        .setDescription("The value to set")
-                        .setRequired(true)
-                )
-        )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("channel")
-                .setDescription("Sets the value of the setting to be the default for any future games in this channel")
-                .addStringOption(option =>
-                    option.setName("setting")
-                        .setDescription("The name of the setting to the set the value of")
-                        .setRequired(true)
-                        .addChoices(
-                            ...choices
-                        )
-                )
-                .addStringOption(option =>
-                    option.setName("value")
-                        .setDescription("The value to set")
-                        .setRequired(true)
-                )
-        )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("game")
-                .setDescription("Sets the value of the setting for the ongoing game")
-                .addStringOption(option =>
-                    option.setName("setting")
-                        .setDescription("The name of the setting to the set the value of")
-                        .setRequired(true)
-                        .addChoices(
-                            ...(choices.filter(c => c.game))
-                        )
-                )
-                .addStringOption(option =>
-                    option.setName("value")
-                        .setDescription("The value to set")
-                        .setRequired(true)
-                )
-        ),
+    data: settingCommand,
     /**
      * 
      * @param {Interaction} interaction 
@@ -72,27 +75,53 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply();
 
-        let settingType = interaction.options.getSubcommand();
+        let settingAlias = interaction.options.getSubcommand();
+        const settingDef = settingDefs.find(s => s.alias === settingAlias);
+        let settingName = settingDef.name;
 
-        if (settingType === "guild") {
-            let result = await SetGuildSetting(interaction.options.getString('setting'), interaction.guildId, interaction.options.getString('value'));
+        let settingValue;
+
+        console.log(settingDef.type);
+        console.log(interaction.options);
+
+        switch (settingDef.type) {
+            case "string":
+                settingValue = interaction.options.getString("value");
+                break;
+            case "number":
+                settingValue = interaction.options.getNumber("value").toString();
+                break;
+            case "integer":
+                settingValue = interaction.options.getInteger("value").toString();
+                break;
+            case "role":
+                settingValue = interaction.options.getRole("value").id.toString();
+                break;
+            default:
+                break;
+        }
+
+        let settingScope = interaction.options.getString("scope");
+
+        if (settingScope === "guild") {
+            let result = await SetGuildSetting(settingName, interaction.guildId, settingValue);
 
             if (result.result) {
-                interaction.followUp({ content: "Guild setting successfuly set" })
+                interaction.followUp({ content: `Guild setting '${settingDef.cleanName}' successfuly set` })
             } else {
                 interaction.followUp({ content: result.error })
             }
         }
-        else if (settingType === "channel") {
-            let result = await SetChannelSetting(interaction.options.getString('setting'), interaction.guildId, interaction.channelId, interaction.options.getString('value'));
+        else if (settingScope === "channel") {
+            let result = await SetChannelSetting(settingName, interaction.guildId, interaction.channelId, settingValue);
 
             if (result.result) {
-                interaction.followUp({ content: "Channel setting successfuly set" })
+                interaction.followUp({ content: `Channel setting '${settingDef.cleanName}' successfuly set` })
             } else {
                 interaction.followUp({ content: result.error })
             }
         }
-        else if (settingType === "game") {
+        else if (settingScope === "game") {
             const activeGame = await Games.findOne({
                 where: {
                     guild_id: interaction.guildId,
@@ -102,10 +131,10 @@ module.exports = {
             });
 
             if (activeGame) {
-                let result = await SetGameSetting(interaction.options.getString('setting'), activeGame.id, interaction.options.getString('value'));
+                let result = await SetGameSetting(settingName, activeGame.id, settingValue);
 
                 if (result.result) {
-                    interaction.followUp({ content: "Channel setting successfuly set" })
+                    interaction.followUp({ content: `Game setting '${settingDef.cleanName}' successfuly set` })
                 } else {
                     interaction.followUp({ content: result.error })
                 }

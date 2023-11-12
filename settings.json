@@ -11,8 +11,8 @@
         "id": 2,
         "setting_name": "GiveAndTakeRoleID",
         "default_value": "",
-        "setting_type": "INT",
-        "min": "100000000000000000",
-        "max": "999999999999999999"
+        "setting_type": "STRING",
+        "min": 18,
+        "max": 19
     }
 ]
