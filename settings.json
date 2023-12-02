@@ -12,7 +12,15 @@
         "setting_name": "GiveAndTakeRoleID",
         "default_value": "",
         "setting_type": "STRING",
-        "min": 18,
-        "max": 19
+        "min": 1,
+        "max": -1
+    },
+    {
+        "id": 3,
+        "setting_name": "ThemeVoteHours",
+        "default_value": "72",
+        "setting_type": "INT",
+        "min": 1,
+        "max": -1
     }
 ]

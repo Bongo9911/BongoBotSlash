@@ -5,6 +5,7 @@ const { SetGuildSetting, SetChannelSetting, SetGameSetting } = require('../../gi
 let settingDefs = [
     { alias: "cooldowninminutes", cleanName: "Cooldown In Minutes", name: 'CooldownMinutes', game: true, type: "integer", description: "The number of minutes a user must wait before making another point swap" },
     { alias: "giveandtakerole", cleanName: "Give & Take Role", name: 'GiveAndTakeRoleID', game: false, type: "role", description: "The role used to ping for Give & Take games and votes" },
+    { alias: "themevotehours", cleanName: "Theme Vote Length In Hours", name: 'ThemeVoteHours', game: false, type: "integer", description: "The number of hours a theme vote will last" },
 ];
 
 const settingCommand = new SlashCommandBuilder()

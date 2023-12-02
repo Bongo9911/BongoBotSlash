@@ -633,8 +633,10 @@ async function StartThemeVote(channel) {
 
     if (chosenThemes.length) {
 
+        const themeVoteHours = await GetChannelSettingValue("ThemeVoteHours", channel.guildId, channel.id);
+
         const endTime = new Date();
-        endTime.setHours(endTime.getHours() + (24 * 3));
+        endTime.setHours(endTime.getHours() + themeVoteHours);
 
         let description = "";
 
@@ -649,7 +651,7 @@ async function StartThemeVote(channel) {
 
         let content = "**Voting ends** <t:" + Math.ceil(endTime.getTime() / 1000) + ":R>";
 
-        const giveAndTakeRoleID = GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.channelId)
+        const giveAndTakeRoleID = await GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.id)
         if (giveAndTakeRoleID.length && channel.guildId === "279211267443523585") {
             content += "\n<@&" + giveAndTakeRoleID + ">"
         }
