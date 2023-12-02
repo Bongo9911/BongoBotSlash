@@ -10,7 +10,8 @@ let settingDefs = [
 
 const settingCommand = new SlashCommandBuilder()
     .setName('setsetting')
-    .setDescription('Sets a value for a setting');
+    .setDescription('Sets a value for a setting')
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages);
 
 settingDefs.forEach(choice => {
     settingCommand.addSubcommand(subcommand => {
