@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, Interaction } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, Interaction, PermissionFlagsBits } = require('discord.js');
 const { Games } = require('../../databaseModels.js');
 const { SetGuildSetting, SetChannelSetting, SetGameSetting } = require('../../giveandtake/settingsService.js');
 
