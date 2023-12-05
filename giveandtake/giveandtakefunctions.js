@@ -479,7 +479,7 @@ async function CheckGameStatus(game) {
 
         if (channel) {
             let content = "";
-            const giveAndTakeRoleID = GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.channelId)
+            const giveAndTakeRoleID = GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.id)
             if (giveAndTakeRoleID.length) {
                 content = "<@&" + giveAndTakeRoleID + ">"
             }
@@ -737,7 +737,7 @@ async function CheckThemeVoteStatus() {
 
             message = "Starting game with theme: **" + theme.name + "**";
 
-            const giveAndTakeRoleID = GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.channelId)
+            const giveAndTakeRoleID = GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.id)
             if (giveAndTakeRoleID.length) {
                 message += "\n<@&" + giveAndTakeRoleID + ">"
             }
