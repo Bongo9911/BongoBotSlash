@@ -479,9 +479,9 @@ async function CheckGameStatus(game) {
 
         if (channel) {
             let content = "";
-            const giveAndTakeRoleID = GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.id)
+            const giveAndTakeRoleID = await GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.id)
             if (giveAndTakeRoleID.length) {
-                content = "<@&" + giveAndTakeRoleID + ">"
+                content += "<@&" + giveAndTakeRoleID + ">"
             }
 
             const message = await channel.send({ content: content, embeds: [pollEmbed] });
@@ -652,7 +652,7 @@ async function StartThemeVote(channel) {
         let content = "**Voting ends** <t:" + Math.ceil(endTime.getTime() / 1000) + ":R>";
 
         const giveAndTakeRoleID = await GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.id)
-        if (giveAndTakeRoleID.length && channel.guildId === "279211267443523585") {
+        if (giveAndTakeRoleID.length) {
             content += "\n<@&" + giveAndTakeRoleID + ">"
         }
 
@@ -737,7 +737,7 @@ async function CheckThemeVoteStatus() {
 
             message = "Starting game with theme: **" + theme.name + "**";
 
-            const giveAndTakeRoleID = GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.id)
+            const giveAndTakeRoleID = await GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.id)
             if (giveAndTakeRoleID.length) {
                 message += "\n<@&" + giveAndTakeRoleID + ">"
             }

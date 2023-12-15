@@ -1,6 +1,8 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const { Themes, ThemeItems } = require('../../databaseModels.js');
 
+//TODO: validate theme items do not have a +, -, *, or /
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('createtheme')
