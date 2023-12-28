@@ -36,7 +36,7 @@ module.exports = {
                 const killsEmbed = new EmbedBuilder()
                     .setColor('#0099ff')
                     .setTitle("Top Killers")
-                    .setDescription(pageRows.join())
+                    .setDescription(pageRows.join(""))
                     .setTimestamp()
                     .setFooter({ text: '/killboard', iconURL: 'https://i.imgur.com/kk9lhk3.png' });
                 embeds.push(killsEmbed)
