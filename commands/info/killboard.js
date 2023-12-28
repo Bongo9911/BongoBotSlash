@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { ItemInteractions, sequelize } = require('../../databaseModels.js');
+const { Pagination } = require('pagination.djs');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -17,24 +18,33 @@ module.exports = {
                 type: "Kill"
             },
             group: 'user_id',
-            order: [['count', 'DESC']],
-            limit: 10
+            order: [['count', 'DESC']]
         });
 
-        let list = "";
+        let rows = [];
         for (let i = 0; i < totals.length; ++i) {
-            list += "`" + getRankString(i + 1) + ".` <@" + totals[i].user_id + "> `" +
-                totals[i].dataValues.count + " kill" + (totals[i].dataValues.count != 1 ? "s`\n" : "`\n");
+            rows.push("`" + getRankString(i + 1) + ".` <@" + totals[i].user_id + "> `" +
+                totals[i].dataValues.count + " kill" + (totals[i].dataValues.count != 1 ? "s`\n" : "`\n"));
         }
 
-        if (list.length) {
-            const killsEmbed = new EmbedBuilder()
-                .setColor('#0099ff')
-                .setTitle("Top 10 Killers")
-                .setDescription(list)
-                .setTimestamp()
-                .setFooter({ text: '/killboard', iconURL: 'https://i.imgur.com/kk9lhk3.png' });
-            await interaction.editReply({ embeds: [killsEmbed] });
+        if (rows.length) {
+            const pagination = new Pagination(interaction);
+
+            const embeds = [];
+            while (rows.length) {
+                let pageRows = rows.splice(0, 10);
+                const killsEmbed = new EmbedBuilder()
+                    .setColor('#0099ff')
+                    .setTitle("Top Killers")
+                    .setDescription(pageRows.join())
+                    .setTimestamp()
+                    .setFooter({ text: '/killboard', iconURL: 'https://i.imgur.com/kk9lhk3.png' });
+                embeds.push(killsEmbed)
+            }
+
+            pagination.setEmbeds(embeds);
+
+            await pagination.render();
         }
         else {
             await interaction.editReply({ content: "No kills have been performed yet in this server" });
