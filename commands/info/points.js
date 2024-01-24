@@ -36,21 +36,34 @@ module.exports = {
 
             let fields = [];
 
-            for (let i = 0; i < columns; ++i) {
-                let pointCol = "";
-                for (let j = i * perColumn; j < (i + 1) * perColumn && j < items.length; ++j) {
-                    if (items[j].points > 0) {
-                        pointCol += "(" + items[j].label + ") " + (items[j].emoji ? items[j].emoji + " " : "") + items[j].name + " - **" + items[j].points + "**\n";
+            let colRowCount = 0;
+            let colString = "";
+
+            for (let i = 0; i < items.length; ++i) {
+                let rowString = "(" + items[i].label + ") " + (items[i].emoji ? items[i].emoji + " " : "") + items[i].name + " - **" + items[i].points + "**\n";
+
+                if (colString.length + rowString.length > 1024 || colRowCount > perColumn) {
+                    if (fields.length === 0) {
+                        fields.push({ name: "Points", value: colString, inline: true });
                     }
                     else {
-                        pointCol += "**(" + items[j].label + ") " + (items[j].emoji ? items[j].emoji + " " : "") + items[j].name + " - " + items[j].points + "** :skull:\n";
+                        fields.push({ name: "\u200b", value: colString, inline: true });
                     }
-                }
-                if (i == 0) {
-                    fields.push({ name: "Points", value: pointCol, inline: true });
+                    colRowCount = 0;
+                    colString = "";
                 }
                 else {
-                    fields.push({ name: "\u200b", value: pointCol, inline: true });
+                    colString += rowString;
+                    colRowCount++;
+                }
+            }
+
+            if (colString.length > 0) {
+                if (fields.length === 0) {
+                    fields.push({ name: "Points", value: colString, inline: true });
+                }
+                else {
+                    fields.push({ name: "\u200b", value: colString, inline: true });
                 }
             }
 

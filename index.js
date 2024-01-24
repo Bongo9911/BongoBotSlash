@@ -34,38 +34,51 @@ client.on(Events.MessageCreate, async message => {
 	if (message.author.bot) return;
 	if (message.channel.type === "dm") return;
 
-	let content = message.content;
-	if ((content.startsWith("+") || content.startsWith("-")) && content.indexOf("+") != -1 && content.indexOf("-") != -1) {
-		const giveName = content.split("+")[1].split("-")[0].trim().toLowerCase();
-		const takeName = content.split("-")[1].split("+")[0].trim().toLowerCase();
-		let reply = await MakeMove(message.guildId, message.channelId, message.author.id, giveName, takeName);
-		if ("message" in reply) {
-			message.reply({ content: reply.message });
+	try {
+		let content = message.content;
+		if ((content.startsWith("+") || content.startsWith("-")) && content.indexOf("+") != -1 && content.indexOf("-") != -1) {
+			const giveName = content.split("+")[1].split("-")[0].trim().toLowerCase();
+			const takeName = content.split("-")[1].split("+")[0].trim().toLowerCase();
+			let reply = await MakeMove(message.guildId, message.channelId, message.author.id, giveName, takeName);
+			if ("message" in reply) {
+				message.reply({ content: reply.message });
+			}
+			else if ("embed" in reply) {
+				message.reply({ embeds: [reply.embed] });
+			}
 		}
-		else if ("embed" in reply) {
-			message.reply({ embeds: [reply.embed] });
-		}
+	}
+	catch (error) {
+		console.error(error);
+		message.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
 })
 
 client.on(Events.InteractionCreate, async interaction => {
-	if (!interaction.isChatInputCommand()) return;
-	const command = interaction.client.commands.get(interaction.commandName);
+	if (interaction.isChatInputCommand()) {
+		const command = interaction.client.commands.get(interaction.commandName);
 
-	if (!command) {
-		console.error(`No command matching ${interaction.commandName} was found.`);
-		return;
-	}
-
-	try {
-		await command.execute(interaction);
-	} catch (error) {
-		console.error(error);
-		if (interaction.replied || interaction.deferred) {
-			await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
-		} else {
-			await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+		if (!command) {
+			console.error(`No command matching ${interaction.commandName} was found.`);
+			return;
 		}
+
+		try {
+			await command.execute(interaction);
+		} catch (error) {
+			console.error(error);
+			if (interaction.replied || interaction.deferred) {
+				await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+			} else {
+				await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+			}
+		}
+	}
+	else if (interaction.isButton()) {
+		//TODO: handle pagination
+	}
+	else {
+		return;
 	}
 });
 
@@ -82,7 +95,7 @@ client.once(Events.ClientReady, async c => {
 client.login(process.env.TOKEN);
 
 //Check every minute if there is any finished games
-setInterval(async function() {
+setInterval(async function () {
 	await CheckGameVoteStatus();
 	await CheckThemeVoteStatus();
 }, 60 * 1000);

@@ -525,21 +525,40 @@ async function BuildPointsEmbed(game, takeItem) {
 
     let fields = [];
 
-    for (let i = 0; i < columns; ++i) {
-        let pointCol = "";
-        for (let j = i * perColumn; j < (i + 1) * perColumn && j < items.length; ++j) {
-            if (items[j].points > 0) {
-                pointCol += "(" + items[j].label + ") " + (items[j].emoji ? items[j].emoji + " " : "") + items[j].name + " - **" + items[j].points + "**\n";
-            }
-            else {
-                pointCol += "**(" + items[j].label + ") " + (items[j].emoji ? items[j].emoji + " " : "") + items[j].name + " - " + items[j].points + "** :skull:\n";
-            }
-        }
-        if (i == 0) {
-            fields.push({ name: "Points", value: pointCol, inline: true });
+    let colRowCount = 0;
+    let colString = "";
+
+    for (let i = 0; i < items.length; ++i) {
+        let rowString = "";
+        if (items[i].points > 0) {
+            rowString = "(" + items[i].label + ") " + (items[i].emoji ? items[i].emoji + " " : "") + items[i].name + " - **" + items[i].points + "**\n";
         }
         else {
-            fields.push({ name: "\u200b", value: pointCol, inline: true });
+            rowString = "**(" + items[i].label + ") " + (items[i].emoji ? items[i].emoji + " " : "") + items[i].name + " - " + items[i].points + "** :skull:\n";
+        }
+
+        if (colString.length + rowString.length > 1024 || colRowCount > perColumn) {
+            if (fields.length === 0) {
+                fields.push({ name: "Points", value: colString, inline: true });
+            }
+            else {
+                fields.push({ name: "\u200b", value: colString, inline: true });
+            }
+            colRowCount = 0;
+            colString = "";
+        }
+        else {
+            colString += rowString;
+            colRowCount++;
+        }
+    }
+
+    if (colString.length > 0) {
+        if (fields.length === 0) {
+            fields.push({ name: "Points", value: colString, inline: true });
+        }
+        else {
+            fields.push({ name: "\u200b", value: colString, inline: true });
         }
     }
 
@@ -744,7 +763,7 @@ async function CheckThemeVoteStatus() {
 
             await channel.send(message);
 
-            const pointsEmbed = await BuildPointsEmbed(game, {id: -1});
+            const pointsEmbed = await BuildPointsEmbed(game, { id: -1 });
 
             channel.send({ embeds: [pointsEmbed] });
         }
