@@ -545,7 +545,7 @@ async function BuildPointsEmbed(game, takeItem) {
                 fields.push({ name: "\u200b", value: colString, inline: true });
             }
             colRowCount = 0;
-            colString = "";
+            colString = rowString;
         }
         else {
             colString += rowString;
