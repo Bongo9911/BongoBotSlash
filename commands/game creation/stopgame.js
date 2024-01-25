@@ -4,7 +4,8 @@ const { Themes, ThemeItems, Games, GameItems } = require('../../databaseModels.j
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('stopgame')
-        .setDescription('Stops the current game'),
+        .setDescription('Stops the current game')
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
     async execute(interaction) {
         await interaction.deferReply();
 

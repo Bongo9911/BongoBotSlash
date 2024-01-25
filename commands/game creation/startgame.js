@@ -16,7 +16,8 @@ module.exports = {
                 .setName('points')
                 .setDescription('The number of points each item will start with')
                 .setRequired(true)
-        ),
+        )
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
     async execute(interaction) {
         await interaction.deferReply();
 
