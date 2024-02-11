@@ -58,7 +58,7 @@ module.exports = {
 
                 const killsEmbed = new EmbedBuilder()
                     .setColor('#0099ff')
-                    .setTitle("Kills")
+                    .setTitle("Kills - " + selectedGame.theme_name)
                     .setDescription(list)
                     .setTimestamp()
                     .setFooter({ text: '/kills', iconURL: 'https://i.imgur.com/kk9lhk3.png' });

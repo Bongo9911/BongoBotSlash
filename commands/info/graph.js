@@ -144,7 +144,7 @@ module.exports = {
 
             const graphEmbed = new EmbedBuilder()
                 .setColor('#0099ff')
-                .setTitle("Point Graph")
+                .setTitle("Point Graph - " + selectedGame.theme_name)
                 .setImage(chartURL)
                 .setTimestamp()
                 .setFooter({ text: '/graph', iconURL: 'https://i.imgur.com/kk9lhk3.png' });
