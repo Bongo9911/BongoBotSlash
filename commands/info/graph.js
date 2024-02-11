@@ -34,34 +34,53 @@ let colors = [
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('graph')
-        .setDescription('Creates a graph with all the point swaps from the active game'),
+        .setDescription('Creates a graph with all the point swaps from the active game')
+        .addNumberOption(option =>
+            option
+                .setName('gameid')
+                .setDescription('The ID of the game to graph')
+                .setRequired(false)),
     async execute(interaction) {
         await interaction.deferReply();
 
-        // interaction.followUp({ content: "This command is currently disabled" });
-        const activeGame = await Games.findOne({
-            where: {
-                guild_id: interaction.guildId,
-                channel_id: interaction.channelId,
-                active: true
-            }
-        });
+        let gameID = interaction.options.getNumber('gameid');
 
-        if (activeGame) {
+        let selectedGame;
+
+        if (gameID) {
+            selectedGame = await Games.findOne({
+                where: {
+                    guild_id: interaction.guildId,
+                    channel_id: interaction.channelId,
+                    id: gameID
+                }
+            });
+        }
+        else {
+            selectedGame = await Games.findOne({
+                where: {
+                    guild_id: interaction.guildId,
+                    channel_id: interaction.channelId,
+                    active: true
+                }
+            });
+        }
+
+        if (selectedGame) {
             const items = await GameItems.findAll({
                 where: {
-                    game_id: activeGame.id
+                    game_id: selectedGame.id
                 }
             })
 
             let fullData = [];
 
-            let skipNum = Math.max(Math.round((activeGame.turns + 1) / 200), 1);
+            let skipNum = Math.max(Math.round((selectedGame.turns + 1) / 200), 1);
 
             for (let i = 0; i < items.length; ++i) {
                 const history = await GameHistory.findAll({
                     where: {
-                        game_id: activeGame.id,
+                        game_id: selectedGame.id,
                         item_id: items[i].id
                     },
                     order: [['turn_number', 'ASC']]
@@ -70,7 +89,7 @@ module.exports = {
                 fullData[i] = [];
 
                 let historyIndex = 0;
-                for (let h = 0; h <= activeGame.turns; h += skipNum) {
+                for (let h = 0; h <= selectedGame.turns; h += skipNum) {
                     while (history[historyIndex].turn_number < h && historyIndex !== history.length - 1) {
                         historyIndex++;
                     }

@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
-const { Themes, ThemeItems, Badges } = require('../../databaseModels.js');
+const { Themes, ThemeItems, Badges } = require('../databaseModels.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
