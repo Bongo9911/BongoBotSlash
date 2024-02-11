@@ -12,7 +12,6 @@ module.exports = {
         const guildGames = await Games.findAll({
             where: {
                 guild_id: interaction.guildId,
-                channel_id: interaction.channelId,
                 active: false
             }
         });
