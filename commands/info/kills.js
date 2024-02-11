@@ -21,7 +21,6 @@ module.exports = {
             selectedGame = await Games.findOne({
                 where: {
                     guild_id: interaction.guildId,
-                    channel_id: interaction.channelId,
                     id: gameID
                 }
             });
