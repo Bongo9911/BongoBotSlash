@@ -151,6 +151,9 @@ module.exports = {
 
             interaction.editReply({ embeds: [graphEmbed] });
         }
+        else if (gameID) {
+            interaction.editReply({ content: "No game found with this ID for this guild." });
+        }
         else {
             interaction.editReply({ content: "There is currently no active game in this channel." });
         }
