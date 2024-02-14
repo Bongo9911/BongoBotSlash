@@ -96,6 +96,11 @@ client.login(process.env.TOKEN);
 
 //Check every minute if there is any finished games
 setInterval(async function () {
-	await CheckGameVoteStatus();
-	await CheckThemeVoteStatus();
+	try {
+		await CheckGameVoteStatus();
+		await CheckThemeVoteStatus();
+	}
+	catch (e) {
+		console.error("Unexpected error: " + e);
+	}
 }, 60 * 1000);

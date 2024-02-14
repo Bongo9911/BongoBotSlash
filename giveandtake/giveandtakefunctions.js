@@ -1,6 +1,6 @@
 const { GameItems, ItemInteractions, GameHistory, Games, UserBadges, sequelize, Badges, Themes, ThemeVotes, ThemeVoteThemes, ThemeItems } = require('../databaseModels.js');
 const { Op } = require("sequelize");
-const { Channel, EmbedBuilder } = require('discord.js');
+const { Channel, EmbedBuilder, messageLink } = require('discord.js');
 const { client } = require('../client');
 const fs = require('node:fs');
 const { GetGameSettingValue, GetChannelSettingValue } = require('./settingsService.js');
@@ -592,36 +592,42 @@ async function CheckGameVoteStatus() {
             const channel = client.channels.cache.get(game.channel_id);
             const voteMessage = await channel.messages.fetch(game.voting_message);
 
-            let reactionCount = [];
+            if (!voteMessage.deleted) {
+                let reactionCount = [];
 
-            for (let i = 0; i < gameItems.length; ++i) {
-                reactionCount.push(voteMessage.reactions.cache.get(reactionEmojis[i]).count - 1);
-            }
+                for (let i = 0; i < gameItems.length; ++i) {
+                    reactionCount.push(voteMessage.reactions.cache.get(reactionEmojis[i]).count - 1);
+                }
 
-            let maxReactionCount = Math.max(...reactionCount);
+                let maxReactionCount = Math.max(...reactionCount);
 
-            let winningItems = gameItems.filter((item, i) => reactionCount[i] === maxReactionCount);
+                let winningItems = gameItems.filter((item, i) => reactionCount[i] === maxReactionCount);
 
-            let message = "";
+                let message = "";
 
-            if (winningItems.length === 1) {
-                message = "**" + winningItems[0].name + "** has won the game with " + maxReactionCount + " vote(s)!";
-            }
-            else if (winningItems.length === gameItems.length) {
-                message = "The game has ended in a tie with all items receiving " + maxReactionCount + " vote(s)!";
-            }
-            else {
-                for (let i = 0; i < winningItems.length; ++i) {
-                    if (i !== winningItems.length - 1) {
-                        message += "**" + winningItems[i].name + "**, ";
-                    }
-                    else {
-                        message += "and **" + winningItems[i].name + "** have tied with " + maxReactionCount + " vote(s)!";
+                if (winningItems.length === 1) {
+                    message = "**" + winningItems[0].name + "** has won the game with " + maxReactionCount + " vote(s)!";
+                }
+                else if (winningItems.length === gameItems.length) {
+                    message = "The game has ended in a tie with all items receiving " + maxReactionCount + " vote(s)!";
+                }
+                else {
+                    for (let i = 0; i < winningItems.length; ++i) {
+                        if (i !== winningItems.length - 1) {
+                            message += "**" + winningItems[i].name + "**, ";
+                        }
+                        else {
+                            message += "and **" + winningItems[i].name + "** have tied with " + maxReactionCount + " vote(s)!";
+                        }
                     }
                 }
-            }
 
-            await channel.send(message);
+                await channel.send(message);
+            }
+            else {
+                let message = "Final vote message has been deleted, could not determine results. Ending game...";
+                await channel.send(message);
+            }
 
             game.active = false;
             await game.save();
@@ -721,51 +727,61 @@ async function CheckThemeVoteStatus() {
             const channel = client.channels.cache.get(themeVote.channel_id);
             const voteMessage = await channel.messages.fetch(themeVote.message_id);
 
-            let reactionCount = [];
+            if (!voteMessage.deleted) {
+                let reactionCount = [];
 
-            for (let i = 0; i < themes.length; ++i) {
-                reactionCount.push(voteMessage.reactions.cache.get(reactionEmojis[themes[i].sequence_number]).count - 1);
-            }
-
-            let maxReactionCount = Math.max(...reactionCount);
-
-            let winningTheme = themes.find((item, i) => reactionCount[i] === maxReactionCount);
-
-            const theme = await Themes.findOne({
-                where: {
-                    id: winningTheme.theme_id
+                for (let i = 0; i < themes.length; ++i) {
+                    reactionCount.push(voteMessage.reactions.cache.get(reactionEmojis[themes[i].sequence_number]).count - 1);
                 }
-            });
 
-            let message = "**" + theme.name + "** has been chosen as the next theme with " + maxReactionCount + " vote(s)!";
+                let maxReactionCount = Math.max(...reactionCount);
 
-            await channel.send(message);
+                let winningTheme = themes.find((item, i) => reactionCount[i] === maxReactionCount);
 
-            themeVote.active = false;
-            await themeVote.save();
+                const theme = await Themes.findOne({
+                    where: {
+                        id: winningTheme.theme_id
+                    }
+                });
 
-            const themeItemCount = await ThemeItems.count({
-                where: {
-                    theme_id: theme.id
+                let message = "**" + theme.name + "** has been chosen as the next theme with " + maxReactionCount + " vote(s)!";
+
+                await channel.send(message);
+
+                themeVote.active = false;
+                await themeVote.save();
+
+                const themeItemCount = await ThemeItems.count({
+                    where: {
+                        theme_id: theme.id
+                    }
+                });
+
+                const startingPoints = Math.ceil(150 / themeItemCount);
+
+                const game = await StartGame(theme, startingPoints, themeVote.guild_id, themeVote.channel_id, client.user.id);
+
+                message = "Starting game with theme: **" + theme.name + "**";
+
+                const giveAndTakeRoleID = await GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.id)
+                if (giveAndTakeRoleID.length) {
+                    message += "\n<@&" + giveAndTakeRoleID + ">"
                 }
-            });
 
-            const startingPoints = Math.ceil(150 / themeItemCount);
+                await channel.send(message);
 
-            const game = await StartGame(theme, startingPoints, themeVote.guild_id, themeVote.channel_id, client.user.id);
+                const pointsEmbed = await BuildPointsEmbed(game, { id: -1 });
 
-            message = "Starting game with theme: **" + theme.name + "**";
-
-            const giveAndTakeRoleID = await GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.id)
-            if (giveAndTakeRoleID.length) {
-                message += "\n<@&" + giveAndTakeRoleID + ">"
+                channel.send({ embeds: [pointsEmbed] });
             }
+            else {
+                let message = "Theme vote message has been deleted, could not determine results. Cancelling vote...";
 
-            await channel.send(message);
+                await channel.send(message);
 
-            const pointsEmbed = await BuildPointsEmbed(game, { id: -1 });
-
-            channel.send({ embeds: [pointsEmbed] });
+                themeVote.active = false;
+                await themeVote.save();
+            }
         }
     });
 }
