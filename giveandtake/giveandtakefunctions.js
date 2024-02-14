@@ -625,6 +625,7 @@ async function CheckGameVoteStatus() {
                 await channel.send(message);
             }
             else {
+                console.log("Final vote message was deleted");
                 let message = "Final vote message has been deleted, could not determine results. Ending game...";
                 await channel.send(message);
             }
@@ -775,6 +776,8 @@ async function CheckThemeVoteStatus() {
                 channel.send({ embeds: [pointsEmbed] });
             }
             else {
+                console.log("Theme vote message was deleted");
+
                 let message = "Theme vote message has been deleted, could not determine results. Cancelling vote...";
 
                 await channel.send(message);
