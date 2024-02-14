@@ -590,9 +590,18 @@ async function CheckGameVoteStatus() {
 
         if (gameItems.length > 0) {
             const channel = client.channels.cache.get(game.channel_id);
-            const voteMessage = await channel.messages.fetch(game.voting_message);
 
-            if (!voteMessage.deleted) {
+            let messageDeleted;
+            let voteMessage;
+            try {
+                voteMessage = await channel.messages.fetch(game.voting_message);
+                messageDeleted = voteMessage.deleted;
+            }
+            catch {
+                messageDeleted = true;
+            }
+
+            if (!messageDeleted) {
                 let reactionCount = [];
 
                 for (let i = 0; i < gameItems.length; ++i) {
@@ -726,9 +735,17 @@ async function CheckThemeVoteStatus() {
         if (themes.length > 0) {
             console.log(themeVote.channel_id)
             const channel = client.channels.cache.get(themeVote.channel_id);
-            const voteMessage = await channel.messages.fetch(themeVote.message_id);
+            let messageDeleted;
+            let voteMessage;
+            try {
+                voteMessage = await channel.messages.fetch(themeVote.message_id);
+                messageDeleted = voteMessage.deleted;
+            }
+            catch {
+                messageDeleted = true;
+            }
 
-            if (!voteMessage.deleted) {
+            if (!messageDeleted) {
                 let reactionCount = [];
 
                 for (let i = 0; i < themes.length; ++i) {
