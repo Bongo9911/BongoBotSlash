@@ -8,6 +8,22 @@ const { MakeMove, CheckGameVoteStatus, CreateBadges, StartThemeVote, CheckThemeV
 const { client } = require('./client');
 const { CreateSettingsIfNotExist } = require('./giveandtake/settingsService');
 
+const process = require('node:process');
+const { error } = require('node:console');
+
+process.on('unhandledRejection', (reason, promise) => {
+	console.error("Unhandled Rejection at: " + promise + " reason: " + reason);
+});
+
+process.on('uncaughtException', (err, origin) => {
+	console.error("Uncaught Exception at: " + origin + " error: " + err);
+});
+
+process.on('uncaughtExceptionMonitor', (err, origin) => {
+	console.error("Uncaught Exception Monitor at: " + origin + " error: " + err);
+});
+
+
 client.commands = new Collection();
 
 const foldersPath = path.join(__dirname, 'commands');
