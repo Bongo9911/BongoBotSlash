@@ -642,7 +642,11 @@ async function CheckGameVoteStatus() {
             game.active = false;
             await game.save();
 
-            await StartThemeVote(channel);
+            const themeVoteEnabled = await GetChannelSettingValue("ThemeVoteEnabled", channel.guildId, channel.id);
+
+            if (themeVoteEnabled) {
+                await StartThemeVote(channel);
+            }
         }
     });
 }

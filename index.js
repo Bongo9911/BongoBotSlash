@@ -9,7 +9,6 @@ const { client } = require('./client');
 const { CreateSettingsIfNotExist } = require('./giveandtake/settingsService');
 
 const process = require('node:process');
-const { error } = require('node:console');
 
 process.on('unhandledRejection', (reason, promise) => {
 	console.error("Unhandled Rejection at: " + promise + " reason: " + reason);

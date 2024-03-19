@@ -6,6 +6,7 @@ let settingDefs = [
     { alias: "cooldowninminutes", cleanName: "Cooldown In Minutes", name: 'CooldownMinutes', game: true, type: "integer", description: "The number of minutes a user must wait before making another point swap" },
     { alias: "giveandtakerole", cleanName: "Give & Take Role", name: 'GiveAndTakeRoleID', game: false, type: "role", description: "The role used to ping for Give & Take games and votes" },
     { alias: "themevotehours", cleanName: "Theme Vote Length In Hours", name: 'ThemeVoteHours', game: false, type: "integer", description: "The number of hours a theme vote will last" },
+    { alias: "themevoteenabled", cleanName: "Theme Vote Enabled", name: 'ThemeVoteEnabled', game: false, type: "bool", description: "Whether or not a theme vote will start automatically after a game finishes" },
 ];
 
 const settingCommand = new SlashCommandBuilder()
@@ -60,6 +61,13 @@ settingDefs.forEach(choice => {
                         .setRequired(true)
                 );
                 break;
+            case "bool":
+                subcommand = subcommand.addBooleanOption(option =>
+                    option.setName("value")
+                        .setDescription("The value to set")
+                        .setRequired(true)
+                );
+                break;
             default:
                 break;
         }
@@ -98,6 +106,10 @@ module.exports = {
                 break;
             case "role":
                 settingValue = interaction.options.getRole("value").id.toString();
+                break;
+            case "bool":
+                settingValue = interaction.options.getBoolean("value").toString();
+                console.log(settingValue);
                 break;
             default:
                 break;
