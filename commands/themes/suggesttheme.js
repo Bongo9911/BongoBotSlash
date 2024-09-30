@@ -103,6 +103,7 @@ async function getEmojis(message, themeInfo) {
                     getColors(message, themeInfo);
                 }
                 else {
+                    //TODO: validate these are valid emojis
                     themeInfo.emojis = message.content.split(/\r?\n/).filter(m => m.length);
                     if (themeInfo.emojis.length === themeInfo.items.length) {
                         getColors(message, themeInfo);

@@ -23,6 +23,7 @@ const Games = sequelize.define('games', {
     turns: Sequelize.INTEGER, //The number of turns in the game
     active: Sequelize.BOOLEAN,
     voting_message: Sequelize.STRING,
+    voting_type: Sequelize.INTEGER,
     end_time: Sequelize.DATE
 },
 {
@@ -311,13 +312,13 @@ GameHistory.belongsTo(Games, { foreignKey: 'game_id' });
 ItemInteractions.belongsTo(Games, { foreignKey: 'game_id' });
 ItemInteractions.belongsTo(GameItems, { foreignKey: 'item_id' });
 
-UserBadges.hasOne(Badges, { sourceKey: "badge_id", foreignKey: 'id' });
+Badges.hasMany(UserBadges, { sourceKey: "id", foreignKey: 'badge_id' })
 
 ThemeItems.belongsTo(Themes, { foreignKey: "theme_id" });
 
-GuildSettings.hasOne(SettingsConfig, { sourceKey: "setting_id", foreignKey: 'id' });
-ChannelSettings.hasOne(SettingsConfig, { sourceKey: "setting_id", foreignKey: 'id' });
-GameSettings.hasOne(SettingsConfig, { sourceKey: "setting_id", foreignKey: 'id' });
+SettingsConfig.hasMany(GuildSettings, { sourceKey: "id", foreignKey: 'setting_id' });
+SettingsConfig.hasMany(ChannelSettings, { sourceKey: "id", foreignKey: 'setting_id' });
+SettingsConfig.hasMany(GameSettings, { sourceKey: "id", foreignKey: 'setting_id' });
 
 exports.sequelize = sequelize;
 exports.Games = Games;

@@ -1,6 +1,6 @@
 const { GameItems, ItemInteractions, GameHistory, Games, UserBadges, sequelize, Badges, Themes, ThemeVotes, ThemeVoteThemes, ThemeItems } = require('../databaseModels.js');
 const { Op } = require("sequelize");
-const { Channel, EmbedBuilder, messageLink } = require('discord.js');
+const { Channel, EmbedBuilder, messageLink, Poll, PollLayoutType, PollAnswer, Guild, PermissionFlagsBits } = require('discord.js');
 const { client } = require('../client');
 const fs = require('node:fs');
 const { GetGameSettingValue, GetChannelSettingValue } = require('./settingsService.js');
@@ -17,6 +17,15 @@ const reactionEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "
 const itemsForFinalVote = 2;
 const themeVotingEnabled = true;
 const themesPerVote = 10;
+
+/**
+ * Possible types of voting at the end of a game
+ * @enum {number}
+ */
+const VotingTypes = {
+    Reaction: 0,
+    Poll: 1
+}
 
 async function MakeMove(guildId, channelId, userId, giveName, takeName) {
     const game = await Games.findOne({
@@ -462,39 +471,105 @@ async function CheckGameStatus(game) {
         const endTime = new Date();
         endTime.setHours(endTime.getHours() + 12);
 
-        let description = "**Voting ends** <t:" + Math.ceil(endTime.getTime() / 1000) + ":R>\n";
+        const guild = client.guilds.cache.get(game.guild_id);
+        if (guild.members.me.permissions.has(PermissionFlagsBits.SendPolls)) {
+            BuildPoll(game, guild, items, endTime);
+        }
+        else {
+            BuildLegacyPoll(game, items, endTime);
+        }
+    }
+}
 
-        description += "**Options**\n";
+/**
+ * 
+ * @param {Games} game 
+ * @param {Guild} guild 
+ * @param {*} items 
+ * @param {Date} endTime 
+ */
+async function BuildPoll(game, guild, items, endTime) {
+    const emoteIDRegex = /<a?:.+:(\d+)>/
 
-        for (let i = 0; i < items.length; ++i) {
-            description += reactionEmojis[i] + " - " + (items[i].emoji ? items[i].emoji + " " : "") + items[i].name + ((i + 1) < items.length ? "\n" : "");
+    let answers = [];
+
+    for (let i = 0; i < items.length; ++i) {
+        /** @type {PollAnswer} */
+        const answer = {
+            text: items[i].name
         }
 
-        const pollEmbed = new EmbedBuilder()
-            .setColor('#0099ff')
-            .setTitle("📊 FINAL " + itemsForFinalVote + " - React to vote")
-            .setDescription(description);
-
-        const channel = client.channels.cache.get(game.channel_id);
-
-        if (channel) {
-            let content = "";
-            const giveAndTakeRoleID = await GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.id)
-            if (giveAndTakeRoleID.length) {
-                content += "<@&" + giveAndTakeRoleID + ">"
+        if (emoteID = emoteIDRegex.exec(items[i].emoji)) {
+            const guildEmoji = guild.emojis.cache?.find(emoji => emoji.id === emoteID);
+            if (guildEmoji) {
+                answer.emoji = guildEmoji;
+            } else {
+                answer.emoji = reactionEmojis[i % reactionEmojis.length];
             }
+        } else {
+            answer.emoji = items[i].emoji
+        }
 
-            const message = await channel.send({ content: content, embeds: [pollEmbed] });
+        answers.push(answer);
+    }
 
-            //Switch to the voting stage
-            game.status = "VOTING";
-            game.end_time = endTime;
-            game.voting_message = message.id;
-            await game.save();
+    const channel = client.channels.cache.get(game.channel_id);
 
-            for (let i = 0; i < items.length; ++i) {
-                await message.react(reactionEmojis[i]);
+    if (channel) {
+        const message = await channel.send({
+            /** @type {Poll} */
+            poll: {
+                question: { text: "Vote for the winner of " + game.theme_name },
+                answers: answers,
+                allowMultiselect: true,
+                expiresTimestamp: endTime.getTime(),
+                layoutType: PollLayoutType.Default
             }
+        });
+
+        //Switch to the voting stage
+        game.status = "VOTING";
+        game.end_time = endTime;
+        game.voting_message = message.id;
+        game.voting_type = VotingTypes.Poll;
+        await game.save();
+    }
+}
+
+async function BuildLegacyPoll(game, items, endTime) {
+    let description = "**Voting ends** <t:" + Math.ceil(endTime.getTime() / 1000) + ":R>\n";
+
+    description += "**Options**\n";
+
+    for (let i = 0; i < items.length; ++i) {
+        description += reactionEmojis[i] + " - " + (items[i].emoji ? items[i].emoji + " " : "") + items[i].name + ((i + 1) < items.length ? "\n" : "");
+    }
+
+    const pollEmbed = new EmbedBuilder()
+        .setColor('#0099ff')
+        .setTitle("📊 FINAL " + itemsForFinalVote + " - React to vote")
+        .setDescription(description);
+
+    const channel = client.channels.cache.get(game.channel_id);
+
+    if (channel) {
+        let content = "";
+        const giveAndTakeRoleID = await GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.id)
+        if (giveAndTakeRoleID.length) {
+            content += "<@&" + giveAndTakeRoleID + ">"
+        }
+
+        const message = await channel.send({ content: content, embeds: [pollEmbed] });
+
+        //Switch to the voting stage
+        game.status = "VOTING";
+        game.end_time = endTime;
+        game.voting_message = message.id;
+        game.voting_type = VotingTypes.Reaction;
+        await game.save();
+
+        for (let i = 0; i < items.length; ++i) {
+            await message.react(reactionEmojis[i]);
         }
     }
 }
@@ -591,52 +666,25 @@ async function CheckGameVoteStatus() {
         if (gameItems.length > 0) {
             const channel = client.channels.cache.get(game.channel_id);
 
-            let messageDeleted;
-            let voteMessage;
-            try {
-                voteMessage = await channel.messages.fetch(game.voting_message);
-                messageDeleted = voteMessage.deleted;
-            }
-            catch {
-                messageDeleted = true;
-            }
-
-            if (!messageDeleted) {
-                let reactionCount = [];
-
-                for (let i = 0; i < gameItems.length; ++i) {
-                    reactionCount.push(voteMessage.reactions.cache.get(reactionEmojis[i]).count - 1);
+            if (game.voting_type === VotingTypes.Reaction) {
+                let messageDeleted;
+                let voteMessage;
+                try {
+                    voteMessage = await channel.messages.fetch(game.voting_message);
+                    messageDeleted = voteMessage.deleted;
+                }
+                catch {
+                    messageDeleted = true;
                 }
 
-                let maxReactionCount = Math.max(...reactionCount);
-
-                let winningItems = gameItems.filter((item, i) => reactionCount[i] === maxReactionCount);
-
-                let message = "";
-
-                if (winningItems.length === 1) {
-                    message = "**" + winningItems[0].name + "** has won the game with " + maxReactionCount + " vote(s)!";
-                }
-                else if (winningItems.length === gameItems.length) {
-                    message = "The game has ended in a tie with all items receiving " + maxReactionCount + " vote(s)!";
+                if (!messageDeleted) {
+                    CheckReactionVoteWinner(channel, gameItems);
                 }
                 else {
-                    for (let i = 0; i < winningItems.length; ++i) {
-                        if (i !== winningItems.length - 1) {
-                            message += "**" + winningItems[i].name + "**, ";
-                        }
-                        else {
-                            message += "and **" + winningItems[i].name + "** have tied with " + maxReactionCount + " vote(s)!";
-                        }
-                    }
+                    console.log("Final vote message was deleted");
+                    let message = "Final vote message has been deleted, could not determine results. Ending game...";
+                    await channel.send(message);
                 }
-
-                await channel.send(message);
-            }
-            else {
-                console.log("Final vote message was deleted");
-                let message = "Final vote message has been deleted, could not determine results. Ending game...";
-                await channel.send(message);
             }
 
             game.active = false;
@@ -649,6 +697,44 @@ async function CheckGameVoteStatus() {
             }
         }
     });
+}
+
+/**
+ * Checks the winner of a reaction vote
+ * @param {Channel} channel 
+ * @param {GameItems[]} gameItems 
+ */
+async function CheckReactionVoteWinner(channel, gameItems) {
+    let reactionCount = [];
+
+    for (let i = 0; i < gameItems.length; ++i) {
+        reactionCount.push(voteMessage.reactions.cache.get(reactionEmojis[i]).count - 1);
+    }
+
+    let maxReactionCount = Math.max(...reactionCount);
+
+    let winningItems = gameItems.filter((item, i) => reactionCount[i] === maxReactionCount);
+
+    let message = "";
+
+    if (winningItems.length === 1) {
+        message = "**" + winningItems[0].name + "** has won the game with " + maxReactionCount + " vote(s)!";
+    }
+    else if (winningItems.length === gameItems.length) {
+        message = "The game has ended in a tie with all items receiving " + maxReactionCount + " vote(s)!";
+    }
+    else {
+        for (let i = 0; i < winningItems.length; ++i) {
+            if (i !== winningItems.length - 1) {
+                message += "**" + winningItems[i].name + "**, ";
+            }
+            else {
+                message += "and **" + winningItems[i].name + "** have tied with " + maxReactionCount + " vote(s)!";
+            }
+        }
+    }
+
+    await channel.send(message);
 }
 
 /** 

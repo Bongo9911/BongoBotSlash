@@ -106,6 +106,7 @@ async function getEmojis(message, themeInfo) {
                     getColors(message, themeInfo);
                 }
                 else {
+                    //TODO: validate these are valid emojis
                     themeInfo.emojis = message.content.split(/\r?\n/).filter(m => m.length);
                     if (themeInfo.emojis.length === themeInfo.items.length) {
                         getColors(message, themeInfo);
@@ -142,11 +143,11 @@ async function getColors(message, themeInfo) {
                         rgbcolors = [];
                         let valid = true;
                         for (let i = 0; i < hexcolors.length; ++i) {
-                            if(!/^#(?:[0-9a-fA-F]{3}){1,2}$/.test(hexcolors[i])) {
+                            if (!/^#(?:[0-9a-fA-F]{3}){1,2}$/.test(hexcolors[i])) {
                                 message.reply("Invalid hex code: " + hexcolors[i] + " please make sure to include the # at the front of the hex code");
                                 getColors(message, themeInfo);
                             }
-                            
+
                         }
                         if (valid) {
                             themeInfo.colors = rgbcolors;
@@ -167,7 +168,7 @@ async function getColors(message, themeInfo) {
 
 async function finishCreateTheme(message, themeInfo) {
 
-    const theme = await Themes.create({ 
+    const theme = await Themes.create({
         guild_id: message.guildId,
         name: themeInfo.name,
         created_user: message.author.id,
