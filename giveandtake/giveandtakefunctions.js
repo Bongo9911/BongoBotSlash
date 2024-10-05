@@ -40,9 +40,9 @@ async function MakeMove(guildId, channelId, userId, giveName, takeName) {
         const nextMoveTime = await GetUserNextMoveTime(game.id, userId);
 
         //Checks to make sure the user is not on cooldown
-        if (nextMoveTime > new Date().getTime()) {
-            return { message: "You can make another move <t:" + Math.ceil(nextMoveTime / 1000) + ":R>." }
-        }
+        // if (nextMoveTime > new Date().getTime()) {
+        //     return { message: "You can make another move <t:" + Math.ceil(nextMoveTime / 1000) + ":R>." }
+        // }
 
         const giveItem = await GetItem(game.id, giveName);
         const takeItem = await GetItem(game.id, takeName);
@@ -62,6 +62,8 @@ async function MakeMove(guildId, channelId, userId, giveName, takeName) {
 
                 if (takeItem.points === 0) {
                     await AddKill(game, takeItem, userId);
+                    await CheckShouldHalvePoints(game, giveItem);
+                    giveItem.reload();
                 }
 
                 //insert into history table
@@ -151,6 +153,50 @@ async function AddPoints(item, points) {
     await item.reload();
 }
 
+/**
+ * Checks whether or not points should be halved
+ * @param {Game} game 
+ * @param {GameItem} giveItem The item that points were given to 
+ * @returns {boolean} Whether points were halved
+ */
+async function CheckShouldHalvePoints(game, giveItem) {
+    if (!GetGameSettingValue("PointHalvingEnabled", game.id)) return false;
+
+    const gameItems = await GameItems.findAll({
+        where: {
+            game_id: game.id
+        }
+    });
+
+    const totalPoints = gameItems.reduce((partialSum, m) => partialSum + m.points, 0);
+
+    if (totalPoints <= 150) return false;
+
+    const deadItems = gameItems.filter(m => m.points === 0);
+
+    if (deadItems.length === Math.ceil(gameItems.length / 2)) {
+        const aliveItems = gameItems.filter(m => m.points > 0);
+
+        for (const aliveItem of aliveItems) {
+            aliveItem.points = Math.ceil(aliveItem.points / 2);
+            await aliveItem.save();
+            if (giveItem.id !== aliveItem.id) {
+                await AddHistoryRecord(game, aliveItem, -1)
+            }
+        }
+
+        const channel = client.channels.cache.get(game.channel_id);
+
+        if (channel) {
+            channel.send("Halfway mark reached! Points halve been halved.");
+        }
+
+        return true;
+    } else {
+        return false;
+    }
+}
+
 async function AddKill(game, item, userId) {
     await AddInteraction(game, item, userId, "Kill");
     await AddKillCountBadges(game, userId);
@@ -165,7 +211,7 @@ async function AddKill(game, item, userId) {
     });
 
     //User who kills can't also get assist
-    if (lastTake && lastTake.user_id !== userId) {
+    if (lastTake && lastTake.user_id && lastTake.user_id !== userId) {
         await AddInteraction(game, item, lastTake.user_id, "Assist");
         await AddAssistCountBadges(game, lastTake.user_id);
         await AddSpecialAssistBadges(game, item, lastTake.user_id);

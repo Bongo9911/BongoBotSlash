@@ -7,6 +7,7 @@ let settingDefs = [
     { alias: "giveandtakerole", cleanName: "Give & Take Role", name: 'GiveAndTakeRoleID', game: false, type: "role", description: "The role used to ping for Give & Take games and votes" },
     { alias: "themevotehours", cleanName: "Theme Vote Length In Hours", name: 'ThemeVoteHours', game: false, type: "integer", description: "The number of hours a theme vote will last" },
     { alias: "themevoteenabled", cleanName: "Theme Vote Enabled", name: 'ThemeVoteEnabled', game: false, type: "bool", description: "Whether or not a theme vote will start automatically after a game finishes" },
+    { alias: "pointreductionenabled", cleanName: "Point Reduction Enabled", name: 'PointReductionEnabled', game: true, type: "bool", description: "Halve points after half the items have been eliminated and the total points is > 150" },
 ];
 
 const settingCommand = new SlashCommandBuilder()
