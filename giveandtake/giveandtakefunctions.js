@@ -40,9 +40,9 @@ async function MakeMove(guildId, channelId, userId, giveName, takeName) {
         const nextMoveTime = await GetUserNextMoveTime(game.id, userId);
 
         //Checks to make sure the user is not on cooldown
-        // if (nextMoveTime > new Date().getTime()) {
-        //     return { message: "You can make another move <t:" + Math.ceil(nextMoveTime / 1000) + ":R>." }
-        // }
+        if (nextMoveTime > new Date().getTime()) {
+            return { message: "You can make another move <t:" + Math.ceil(nextMoveTime / 1000) + ":R>." }
+        }
 
         const giveItem = await GetItem(game.id, giveName);
         const takeItem = await GetItem(game.id, takeName);
