@@ -206,7 +206,10 @@ async function AddKill(game, item, userId) {
         order: [['id', 'DESC']],
         where: {
             game_id: game.id,
-            item_id: item.id
+            item_id: item.id,
+            user_id: {
+                [Op.not]: item.id
+            },
         }
     });
 
