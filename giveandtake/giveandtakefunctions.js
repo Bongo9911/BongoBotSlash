@@ -181,7 +181,7 @@ async function CheckShouldHalvePoints(game, giveItem) {
             aliveItem.points = Math.ceil(aliveItem.points / 2);
             await aliveItem.save();
             if (giveItem.id !== aliveItem.id) {
-                await AddHistoryRecord(game, aliveItem, -1)
+                await AddHistoryRecord(game, aliveItem, null);
             }
         }
 
