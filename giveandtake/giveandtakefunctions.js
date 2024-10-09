@@ -40,9 +40,9 @@ async function MakeMove(guildId, channelId, userId, giveName, takeName) {
         const nextMoveTime = await GetUserNextMoveTime(game.id, userId);
 
         //Checks to make sure the user is not on cooldown
-        if (nextMoveTime > new Date().getTime()) {
-            return { message: "You can make another move <t:" + Math.ceil(nextMoveTime / 1000) + ":R>." }
-        }
+        // if (nextMoveTime > new Date().getTime()) {
+        //     return { message: "You can make another move <t:" + Math.ceil(nextMoveTime / 1000) + ":R>." }
+        // }
 
         const giveItem = await GetItem(game.id, giveName);
         const takeItem = await GetItem(game.id, takeName);
@@ -160,7 +160,7 @@ async function AddPoints(item, points) {
  * @returns {boolean} Whether points were halved
  */
 async function CheckShouldHalvePoints(game, giveItem) {
-    if (!GetGameSettingValue("PointHalvingEnabled", game.id)) return false;
+    if (!(await GetGameSettingValue("PointReductionEnabled", game.id))) return false;
 
     const gameItems = await GameItems.findAll({
         where: {
@@ -188,7 +188,7 @@ async function CheckShouldHalvePoints(game, giveItem) {
         const channel = client.channels.cache.get(game.channel_id);
 
         if (channel) {
-            channel.send("Halfway mark reached! Points halve been halved.");
+            await channel.send("Halfway mark reached! Points halve been halved.");
         }
 
         return true;
@@ -468,7 +468,7 @@ async function AddBadge(game, userId, badgeId) {
     const channel = client.channels.cache.get(game.channel_id);
 
     if (channel) {
-        channel.send("<@" + userId + "> Badge awarded - " + badge.emoji + " " + badge.name + "!");
+        await channel.send("<@" + userId + "> Badge awarded - " + badge.emoji + " " + badge.name + "!");
     }
 }
 
@@ -565,6 +565,18 @@ async function BuildPoll(game, guild, items, endTime) {
     const channel = client.channels.cache.get(game.channel_id);
 
     if (channel) {
+        let content = "";
+        const giveAndTakeRoleID = await GetChannelSettingValue("GiveAndTakeRoleID", channel.guildId, channel.id)
+        if (giveAndTakeRoleID.length) {
+            content += "<@&" + giveAndTakeRoleID + ">"
+        }
+
+        if (content.length) {
+            await channel.send({
+                content: content
+            });
+        }
+
         const message = await channel.send({
             /** @type {Poll} */
             poll: {
@@ -929,7 +941,7 @@ async function CheckThemeVoteStatus() {
 
                 const pointsEmbed = await BuildPointsEmbed(game, { id: -1 });
 
-                channel.send({ embeds: [pointsEmbed] });
+                await channel.send({ embeds: [pointsEmbed] });
             }
             else {
                 console.log("Theme vote message was deleted");
