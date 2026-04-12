@@ -3,7 +3,7 @@
     "chart.js": "^4.4.4",
     "chart.js-image": "^6.1.3",
     "discord.js": "^14.16.3",
-    "dotenv": "^16.4.5",
+    "dotenv": "^17.0.0",
     "fs": "^0.0.1-security",
     "pagination.djs": "^4.0.15",
     "quickchart-js": "^3.1.3",
